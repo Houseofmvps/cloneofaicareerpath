@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 222 47% 2%;
+        --foreground: 210 40% 98%;
+        --card: 222 47% 7%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222 47% 2%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 239 84% 67%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 217 33% 17%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217 33% 17%;
+        --muted-foreground: 215 20% 65%;
+        --accent: 168 80% 40%;
+        --accent-foreground: 0 0% 100%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 217 33% 17%;
+        --input: 217 33% 17%;
+        --ring: 239 84% 67%;
+        --chart-1: 142 76% 36%;
+        --chart-2: 38 92% 50%;
+        --chart-3: 0 84% 60%;
+        --chart-4: 239 84% 67%;
+        --chart-5: 330 81% 60%;
+        --radius: 0.75rem;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    
+    html {
+        @apply scroll-smooth;
+    }
+    
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-family: 'Manrope', sans-serif;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Outfit', sans-serif;
+        @apply tracking-tight;
+    }
+    
+    code, pre, .mono {
+        font-family: 'JetBrains Mono', monospace;
+    }
+}
+
+@layer components {
+    .glass {
+        @apply bg-gray-900/60 backdrop-blur-xl border border-white/10 shadow-xl;
+    }
+    
+    .glass-heavy {
+        @apply bg-black/80 backdrop-blur-2xl border border-white/5;
+    }
+    
+    .glow-primary {
+        box-shadow: 0 0 20px -5px rgba(99, 102, 241, 0.3);
+    }
+    
+    .glow-accent {
+        box-shadow: 0 0 10px rgba(20, 184, 166, 0.5);
+    }
+    
+    .gradient-text {
+        @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-teal-400;
+    }
+    
+    .btn-primary {
+        @apply bg-indigo-500 text-white hover:bg-indigo-600 shadow-lg shadow-indigo-500/20 
+               rounded-full px-8 py-4 text-lg font-medium transition-all 
+               hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+    
+    .btn-secondary {
+        @apply bg-gray-800 text-white hover:bg-gray-700 rounded-full px-6 py-3 
+               transition-all border border-white/10;
+    }
+    
+    .btn-ghost {
+        @apply hover:bg-white/5 text-foreground rounded-full px-4 py-2 transition-all;
+    }
+    
+    .card-feature {
+        @apply relative overflow-hidden rounded-2xl bg-gradient-to-b from-white/5 to-transparent 
+               p-[1px] border border-white/10 hover:border-indigo-500/50 transition-colors duration-500;
+    }
+    
+    .card-stat {
+        @apply bg-card border border-border p-6 rounded-xl flex flex-col justify-between;
+    }
+    
+    .input-dark {
+        @apply bg-black/20 border-white/10 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 
+               rounded-lg h-12 px-4 text-foreground placeholder:text-muted-foreground/50;
+    }
+    
+    .score-excellent {
+        @apply text-emerald-400 bg-emerald-500/10 border-emerald-500/30;
+    }
+    
+    .score-good {
+        @apply text-blue-400 bg-blue-500/10 border-blue-500/30;
+    }
+    
+    .score-feasible {
+        @apply text-amber-400 bg-amber-500/10 border-amber-500/30;
+    }
+    
+    .score-challenging {
+        @apply text-red-400 bg-red-500/10 border-red-500/30;
+    }
+    
+    .skill-very-high {
+        @apply text-emerald-400 bg-emerald-500/10;
+    }
+    
+    .skill-high {
+        @apply text-blue-400 bg-blue-500/10;
+    }
+    
+    .skill-medium {
+        @apply text-amber-400 bg-amber-500/10;
+    }
+    
+    .skill-low {
+        @apply text-gray-400 bg-gray-500/10;
+    }
+    
+    .priority-critical {
+        @apply text-red-400 border-red-500/30 bg-red-500/10;
+    }
+    
+    .priority-high {
+        @apply text-orange-400 border-orange-500/30 bg-orange-500/10;
+    }
+    
+    .priority-medium {
+        @apply text-yellow-400 border-yellow-500/30 bg-yellow-500/10;
+    }
+}
+
+@layer utilities {
+    .animate-pulse-slow {
+        animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    .animate-glow {
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes glow {
+        from {
+            box-shadow: 0 0 20px -10px rgba(99, 102, 241, 0.5);
+        }
+        to {
+            box-shadow: 0 0 30px -5px rgba(99, 102, 241, 0.8);
+        }
+    }
+    
+    .noise-bg {
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    }
+    
+    .hero-glow {
+        background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%);
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+}
+
+/* File upload drop zone */
+.drop-zone {
+    @apply border-2 border-dashed border-white/20 rounded-2xl p-12 text-center 
+           transition-all duration-300 cursor-pointer;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+    @apply border-indigo-500/50 bg-indigo-500/5;
+}
+
+/* Timeline styles */
+.timeline-line {
+    @apply absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-500 via-purple-500 to-teal-500;
+}
+
+.timeline-dot {
+    @apply absolute left-2 w-5 h-5 rounded-full border-2 border-indigo-500 bg-background;
+}
+
+.timeline-dot.completed {
+    @apply bg-emerald-500 border-emerald-500;
+}
+
+.timeline-dot.current {
+    @apply bg-indigo-500 border-indigo-500 animate-pulse;
+}

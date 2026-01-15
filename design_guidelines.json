@@ -1,0 +1,189 @@
+{
+  "identity": {
+    "name": "E1",
+    "role": "Anti-AI Designer",
+    "mission": "Create a dark, futuristic, yet trustworthy career transition platform that feels like a high-end tool for tech professionals.",
+    "principles": [
+      "Fusion over Imitation: Mix Fintech precision with Gaming aesthetics.",
+      "Emotion First: Empower the user, make them feel 'upgraded'.",
+      "Content is King: Data is the hero, UI is the stage.",
+      "Negative Space: Luxurious spacing to reduce cognitive load."
+    ]
+  },
+  "typography": {
+    "headings": {
+      "family": "Outfit",
+      "weights": ["500", "700"],
+      "usage": "Main headings, section titles, big numbers.",
+      "letterSpacing": "tracking-tight"
+    },
+    "body": {
+      "family": "Manrope",
+      "weights": ["400", "500"],
+      "usage": "Paragraphs, UI labels, data tables.",
+      "letterSpacing": "tracking-normal"
+    },
+    "mono": {
+      "family": "JetBrains Mono",
+      "weights": ["400"],
+      "usage": "Code snippets, ATS scores, technical skills."
+    },
+    "instructions": "Import fonts via Google Fonts in index.css. Do NOT use Inter for headings."
+  },
+  "colors": {
+    "palette": {
+      "background": "#030712",
+      "foreground": "#f9fafb",
+      "card": "#111827",
+      "card_foreground": "#f9fafb",
+      "popover": "#030712",
+      "popover_foreground": "#f9fafb",
+      "primary": "#6366f1",
+      "primary_foreground": "#ffffff",
+      "secondary": "#1f2937",
+      "secondary_foreground": "#f9fafb",
+      "muted": "#1f2937",
+      "muted_foreground": "#9ca3af",
+      "accent": "#14b8a6",
+      "accent_foreground": "#ffffff",
+      "destructive": "#ef4444",
+      "destructive_foreground": "#ffffff",
+      "border": "#1f2937",
+      "input": "#1f2937",
+      "ring": "#6366f1"
+    },
+    "gradients": {
+      "hero_glow": "radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%)",
+      "card_hover": "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)",
+      "beam": "linear-gradient(to right, transparent, #6366f1, transparent)"
+    },
+    "chart_colors": {
+      "score_high": "#10b981",
+      "score_med": "#f59e0b",
+      "score_low": "#ef4444",
+      "skill_match": "#6366f1",
+      "skill_gap": "#ec4899"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "default": "bg-gray-900/60 backdrop-blur-xl border border-white/10 shadow-xl",
+      "heavy": "bg-black/80 backdrop-blur-2xl border border-white/5"
+    },
+    "borders": {
+      "subtle": "border border-white/5",
+      "active": "border border-indigo-500/50"
+    },
+    "shadows": {
+      "glow": "0 0 20px -5px rgba(99, 102, 241, 0.3)",
+      "neon": "0 0 10px rgba(20, 184, 166, 0.5)"
+    },
+    "textures": {
+      "noise": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")"
+    }
+  },
+  "layout_strategies": {
+    "landing_page": {
+      "grid_type": "Mode A: The Tetris Grid",
+      "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "spacing": "gap-8 md:gap-12"
+    },
+    "dashboard": {
+      "grid_type": "Mode B: The Control Room Grid",
+      "container": "w-full h-screen overflow-hidden grid grid-cols-12 gap-4 p-4",
+      "widgets": "bg-card/50 border border-border/50 rounded-xl overflow-hidden"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 rounded-full px-8 py-6 text-lg font-medium transition-all hover:scale-105 active:scale-95",
+      "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full px-6 py-4 transition-all",
+      "ghost": "hover:bg-white/5 text-foreground rounded-full px-4 py-2"
+    },
+    "cards": {
+      "feature": "group relative overflow-hidden rounded-2xl bg-gradient-to-b from-white/5 to-transparent p-1 border border-white/10 hover:border-primary/50 transition-colors duration-500",
+      "stat": "bg-card border border-border p-6 rounded-xl flex flex-col justify-between"
+    },
+    "inputs": {
+      "style": "bg-black/20 border-white/10 focus:border-primary focus:ring-1 focus:ring-primary rounded-lg h-12 px-4 text-foreground placeholder:text-muted-foreground/50"
+    }
+  },
+  "image_urls": {
+    "hero_background": {
+      "url": "https://images.pexels.com/photos/11167645/pexels-photo-11167645.jpeg",
+      "desc": "Abstract dark data flow, use as background with heavy overlay (opacity 20%)"
+    },
+    "community_section": {
+      "url": "https://images.pexels.com/photos/3183197/pexels-photo-3183197.jpeg",
+      "desc": "Diverse team collaborating, use in 'Join Community' or 'About' section"
+    },
+    "partners": [
+      {
+        "url": "https://images.pexels.com/photos/7202944/pexels-photo-7202944.jpeg",
+        "desc": "Tech logo placeholder 1"
+      },
+      {
+        "url": "https://images.pexels.com/photos/2449452/pexels-photo-2449452.jpeg",
+        "desc": "Tech logo placeholder 2"
+      }
+    ]
+  },
+  "motion": {
+    "library": "framer-motion",
+    "transitions": {
+      "page": {
+        "initial": { "opacity": 0, "y": 20 },
+        "animate": { "opacity": 1, "y": 0 },
+        "exit": { "opacity": 0, "y": -20 },
+        "transition": { "duration": 0.4, "ease": "easeOut" }
+      },
+      "stagger": {
+        "container": {
+          "hidden": { "opacity": 0 },
+          "show": {
+            "opacity": 1,
+            "transition": { "staggerChildren": 0.1 }
+          }
+        },
+        "item": {
+          "hidden": { "opacity": 0, "y": 20 },
+          "show": { "opacity": 1, "y": 0 }
+        }
+      }
+    }
+  },
+  "page_specific_instructions": {
+    "landing": {
+      "hero": "Use the 'Abstract dark data flow' image as a subtle background. Large typography: 'Transition into AI'. CTA: 'Analyze Resume'. Use a 'Tracing Beam' effect on the CTA button container.",
+      "features": "Use a Bento Grid layout. Mix 3D icons (Spline or Lucide with glow) with text.",
+      "pricing": "Glassmorphism cards. Highlight 'Pro' plan with a neon border glow."
+    },
+    "upload": {
+      "layout": "Centered, focused. Drag & drop zone should pulse slowly. Use a 'Scanner' animation line when file is dropped.",
+      "feedback": "Show parsing progress with a technical, terminal-like log output (JetBrains Mono font)."
+    },
+    "role_selection": {
+      "grid": "Grid of cards. Each card represents a role (e.g., 'AI Product Manager'). Hovering a card should reveal 'Match Score' (mocked for now) or 'Avg Salary'.",
+      "interaction": "Select multiple roles. 'Next' button floats at the bottom."
+    },
+    "analysis_dashboard": {
+      "layout": "Control Room Grid. Dense but organized.",
+      "widgets": [
+        "ATS Score (Radial Chart)",
+        "Skill Gap Analysis (Bar Chart - Red vs Green)",
+        "Career Fit (Badge/Score)",
+        "Learning Path (Vertical Timeline with 'Checkpoints')"
+      ],
+      "visuals": "Use Recharts with the defined 'chart_colors'. Dark background for charts, bright lines."
+    }
+  },
+  "universal_guidelines": [
+    "Dark Mode is PRIMARY. Do not design for light mode first.",
+    "Use 'sonner' for all notifications.",
+    "Use 'lucide-react' for icons.",
+    "Ensure all interactive elements have 'data-testid'.",
+    "Avoid 'Inter' font for headings. Use 'Outfit'.",
+    "No generic gradients. Use noise textures and subtle glows.",
+    "Buttons must feel tactile (scale on press)."
+  ]
+}
