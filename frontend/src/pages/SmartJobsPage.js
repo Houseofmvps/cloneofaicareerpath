@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "../lib/api";
 import {
   Zap, Search, Building2, MapPin, DollarSign, CheckCircle2,
   Clock, Briefcase, Settings, ToggleLeft, ToggleRight, Filter,
@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import AppNavigation from "../components/AppNavigation";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 const ROLE_OPTIONS = [
   "AI/ML Engineer", "Prompt Engineer", "MLOps Engineer", "Data Scientist",
@@ -48,9 +48,9 @@ const StatusBadge = ({ status }) => {
     offer: { color: "bg-green-500/20 text-green-300", label: "Offer!" },
     rejected: { color: "bg-red-500/20 text-red-300", label: "Rejected" }
   };
-  
+
   const config = statusConfig[status] || statusConfig.applied;
-  
+
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
       {config.label}
@@ -74,15 +74,13 @@ const ApplyModal = ({ job, isOpen, onClose, onApplyComplete }) => {
   const generateCoverLetter = async () => {
     setGenerating(true);
     try {
-      const response = await axios.post(`${API}/auto-apply/prepare-application`, {
+      const response = await api.post(`/auto-apply/prepare-application`, {
         job_id: job.id,
         job_title: job.title,
         company: job.company,
         job_description: job.description,
         job_url: job.job_url,
         cover_letter_tone: selectedTone
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
       setCoverLetter(response.data.cover_letter);
     } catch (error) {
@@ -165,22 +163,49 @@ const ApplyModal = ({ job, isOpen, onClose, onApplyComplete }) => {
                   <button
                     key={tone}
                     onClick={() => setSelectedTone(tone)}
-                    className={`text-xs px-2 py-1 rounded ${
-                      selectedTone === tone 
-                        ? "bg-indigo-500 text-white" 
-                        : "bg-white/10 hover:bg-white/20"
-                    }`}
+                    className={`text-xs px-2 py-1 rounded ${selectedTone === tone
+                      ? "bg-indigo-500 text-white"
+                      : "bg-white/10 hover:bg-white/20"
+                      }`}
                   >
                     {tone.charAt(0).toUpperCase() + tone.slice(1)}
                   </button>
                 ))}
               </div>
             </div>
-            
+
             {generating ? (
-              <div className="bg-black/20 rounded-xl p-8 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
-                <span className="ml-2 text-muted-foreground">Generating cover letter...</span>
+              <div className="bg-black/20 rounded-xl p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Generating your cover letters...</span>
+                    <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500 animate-pulse"
+                      style={{ width: '75%' }}
+                    />
+                  </div>
+
+                  {/* Generation Steps */}
+                  <div className="space-y-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Analyzing job description and requirements</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                      <span>Matching your experience with job needs</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                      <span>Creating 3 unique variations with different tones</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="relative">
@@ -223,7 +248,7 @@ const ApplyModal = ({ job, isOpen, onClose, onApplyComplete }) => {
               <Copy className="w-4 h-4 mr-2" />
               {copied ? "Copied!" : "Copy Letter"}
             </Button>
-            <Button 
+            <Button
               className="btn-primary"
               onClick={handleApplyNow}
               disabled={generating}
@@ -278,7 +303,7 @@ const JobCard = ({ job, onApply, applied, onOpenApplyModal }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="text-right">
           <div className="text-sm font-medium text-emerald-400">{job.salary_range}</div>
           <div className="text-xs text-muted-foreground mt-1">
@@ -353,7 +378,7 @@ const JobCard = ({ job, onApply, applied, onOpenApplyModal }) => {
 // Application Card Component with Status Update
 const ApplicationCard = ({ application, onUpdateStatus }) => {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
-  
+
   const statuses = [
     { value: "applied", label: "Applied", color: "text-blue-400" },
     { value: "viewed", label: "Viewed by Recruiter", color: "text-amber-400" },
@@ -378,15 +403,15 @@ const ApplicationCard = ({ application, onUpdateStatus }) => {
             <div className="text-sm text-muted-foreground">{application.company}</div>
           </div>
         </div>
-        
+
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowStatusMenu(!showStatusMenu)}
             className="hover:opacity-80 transition-opacity"
           >
             <StatusBadge status={application.status} />
           </button>
-          
+
           {showStatusMenu && (
             <div className="absolute right-0 top-full mt-1 bg-gray-900 border border-white/10 rounded-lg shadow-xl z-10 py-1 min-w-[160px]">
               {statuses.map((s) => (
@@ -410,7 +435,7 @@ const ApplicationCard = ({ application, onUpdateStatus }) => {
         <span>Applied {new Date(application.applied_at).toLocaleDateString()}</span>
         <div className="flex items-center gap-2">
           {application.job_url && (
-            <button 
+            <button
               onClick={() => window.open(application.job_url, "_blank")}
               className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
             >
@@ -428,20 +453,20 @@ export default function SmartJobsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searching, setSearching] = useState(false);
-  
+
   // Dashboard state
   const [dashboard, setDashboard] = useState(null);
   const [matchingJobs, setMatchingJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [appliedJobIds, setAppliedJobIds] = useState(new Set());
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLocation, setSearchLocation] = useState("us");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [jobSources, setJobSources] = useState([]);
   const [isMockData, setIsMockData] = useState(true);
-  
+
   // Notification state
   const [notifications, setNotifications] = useState([]);
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -449,7 +474,7 @@ export default function SmartJobsPage() {
     email_status_updates: true,
     email_weekly_summary: true  // Enable by default
   });
-  
+
   // Preferences state
   const [preferences, setPreferences] = useState({
     target_roles: [],
@@ -462,10 +487,10 @@ export default function SmartJobsPage() {
     experience_years: null,
     auto_apply_enabled: false
   });
-  
+
   // View state
   const [activeTab, setActiveTab] = useState("jobs"); // jobs, applications, notifications, settings
-  
+
   // Apply Modal state
   const [selectedJob, setSelectedJob] = useState(null);
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -480,9 +505,7 @@ export default function SmartJobsPage() {
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/auto-apply/dashboard`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const response = await api.get(`/auto-apply/dashboard`);
       setDashboard(response.data);
       setPreferences(response.data.preferences || preferences);
       setMatchingJobs(response.data.matching_jobs || []);
@@ -499,9 +522,7 @@ export default function SmartJobsPage() {
 
   const fetchApplications = async () => {
     try {
-      const response = await axios.get(`${API}/auto-apply/applications`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const response = await api.get(`/auto-apply/applications`);
       setApplications(response.data.applications || []);
       setAppliedJobIds(new Set(response.data.applications?.map(a => a.job_id) || []));
     } catch (error) {
@@ -511,20 +532,17 @@ export default function SmartJobsPage() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get(`${API}/notifications/history`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const response = await api.get(`/notifications/history`);
       setNotifications(response.data.notifications || []);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     }
   };
-  
+
   const updateApplicationStatus = async (applicationId, newStatus) => {
     try {
-      await axios.patch(`${API}/auto-apply/applications/${applicationId}/status`, 
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      await api.patch(`/auto-apply/applications/${applicationId}/status`,
+        { status: newStatus }
       );
       toast.success(`Status updated to ${newStatus}`);
       fetchApplications();
@@ -532,12 +550,12 @@ export default function SmartJobsPage() {
       toast.error("Failed to update status");
     }
   };
-  
+
   const openApplyModal = (job) => {
     setSelectedJob(job);
     setShowApplyModal(true);
   };
-  
+
   const closeApplyModal = () => {
     setShowApplyModal(false);
     setSelectedJob(null);
@@ -545,9 +563,7 @@ export default function SmartJobsPage() {
 
   const fetchNotificationPrefs = async () => {
     try {
-      const response = await axios.get(`${API}/notifications/preferences`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const response = await api.get(`/notifications/preferences`);
       setNotificationPrefs(response.data.preferences || notificationPrefs);
     } catch (error) {
       console.error("Failed to fetch notification preferences:", error);
@@ -557,9 +573,7 @@ export default function SmartJobsPage() {
   const saveNotificationPrefs = async (newPrefs) => {
     try {
       const updatedPrefs = { ...notificationPrefs, ...newPrefs };
-      await axios.post(`${API}/auto-apply/notification-preferences`, updatedPrefs, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      await api.post(`/auto-apply/notification-preferences`, updatedPrefs);
       setNotificationPrefs(updatedPrefs);
     } catch (error) {
       console.error("Failed to save notification prefs:", error);
@@ -568,9 +582,7 @@ export default function SmartJobsPage() {
 
   const sendTestNotification = async () => {
     try {
-      const response = await axios.post(`${API}/notifications/test-interview`, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const response = await api.post(`/notifications/test-interview`, {});
       toast.success("Test notification sent! Check your email.");
       fetchNotifications();
     } catch (error) {
@@ -590,14 +602,12 @@ export default function SmartJobsPage() {
       if (searchKeywords) params.append("keywords", searchKeywords);
       if (searchLocation) params.append("location", searchLocation);
       if (remoteOnly) params.append("remote_only", "true");
-      
-      const url = searchKeywords 
-        ? `${API}/auto-apply/search?${params.toString()}`
-        : `${API}/auto-apply/matching-jobs?${params.toString()}`;
-        
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+
+      const url = searchKeywords
+        ? `/auto-apply/search?${params.toString()}`
+        : `/auto-apply/matching-jobs?${params.toString()}`;
+
+      const response = await api.get(url);
       setMatchingJobs(response.data.jobs || []);
       setJobSources(response.data.sources || []);
       setIsMockData(response.data.is_mock || false);
@@ -612,9 +622,7 @@ export default function SmartJobsPage() {
   const savePreferences = async () => {
     setSaving(true);
     try {
-      await axios.post(`${API}/auto-apply/preferences`, preferences, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      await api.post(`/auto-apply/preferences`, preferences);
       toast.success("Preferences saved!");
       fetchMatchingJobs();
     } catch (error) {
@@ -625,10 +633,9 @@ export default function SmartJobsPage() {
   };
 
   const applyToJob = async (job) => {
-    const response = await axios.post(
-      `${API}/auto-apply/apply/${job.id}`,
-      { job_data: job },
-      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    const response = await api.post(
+      `/auto-apply/apply/${job.id}`,
+      { job_data: job }
     );
     setAppliedJobIds(prev => new Set([...prev, job.id]));
     fetchApplications();
@@ -692,7 +699,7 @@ export default function SmartJobsPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppNavigation />
-      
+
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
@@ -714,7 +721,7 @@ export default function SmartJobsPage() {
                 Search real AI/ML jobs from 6 sources. Generate tailored cover letters instantly.
               </p>
             </div>
-            
+
             {/* Weekly Email Toggle */}
             <div className="glass rounded-xl p-4 text-center">
               <button
@@ -799,11 +806,10 @@ export default function SmartJobsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                  : "text-muted-foreground hover:bg-white/5"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all whitespace-nowrap ${activeTab === tab.id
+                ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                : "text-muted-foreground hover:bg-white/5"
+                }`}
               data-testid={`tab-${tab.id}`}
             >
               <tab.icon className="w-4 h-4" />
@@ -880,11 +886,10 @@ export default function SmartJobsPage() {
                   <h2 className="text-xl font-bold">{matchingJobs.length} Jobs Found</h2>
                   <div className="flex items-center gap-2 mt-1">
                     {jobSources.map(source => (
-                      <span key={source} className={`text-xs px-2 py-0.5 rounded ${
-                        source === "adzuna" ? "bg-blue-500/20 text-blue-300" :
+                      <span key={source} className={`text-xs px-2 py-0.5 rounded ${source === "adzuna" ? "bg-blue-500/20 text-blue-300" :
                         source === "remoteok" ? "bg-green-500/20 text-green-300" :
-                        "bg-amber-500/20 text-amber-300"
-                      }`}>
+                          "bg-amber-500/20 text-amber-300"
+                        }`}>
                         {source === "remoteok" ? "RemoteOK" : source === "adzuna" ? "Adzuna" : source}
                       </span>
                     ))}
@@ -897,7 +902,7 @@ export default function SmartJobsPage() {
                   <RefreshCw className={`w-4 h-4 mr-1 ${searching ? "animate-spin" : ""}`} /> Refresh
                 </Button>
               </div>
-              
+
               {/* Job Cards */}
               <div className="grid md:grid-cols-2 gap-4">
                 {matchingJobs.map((job) => (
@@ -933,7 +938,7 @@ export default function SmartJobsPage() {
                 <h2 className="text-xl font-bold">Your Applications ({applications.length})</h2>
                 <p className="text-sm text-muted-foreground">Click status badge to update</p>
               </div>
-              
+
               {applications.length === 0 ? (
                 <div className="glass rounded-xl p-8 text-center">
                   <Briefcase className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -943,9 +948,9 @@ export default function SmartJobsPage() {
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {applications.map((app) => (
-                    <ApplicationCard 
-                      key={app.id} 
-                      application={app} 
+                    <ApplicationCard
+                      key={app.id}
+                      application={app}
                       onUpdateStatus={updateApplicationStatus}
                     />
                   ))}
@@ -1012,7 +1017,7 @@ export default function SmartJobsPage() {
                     />
                   </div>
                 </div>
-                
+
                 {/* Test Notification Button */}
                 <div className="mt-6 pt-4 border-t border-white/10">
                   <Button
@@ -1041,7 +1046,7 @@ export default function SmartJobsPage() {
                     <RefreshCw className="w-4 h-4 mr-1" /> Refresh
                   </Button>
                 </div>
-                
+
                 {notifications.length === 0 ? (
                   <div className="text-center py-8">
                     <Bell className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -1054,11 +1059,10 @@ export default function SmartJobsPage() {
                       <div key={notif.id || index} className="p-4 bg-black/20 rounded-lg">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-start gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                              notif.type === "interview_scheduled" 
-                                ? "bg-emerald-500/20 text-emerald-400" 
-                                : "bg-indigo-500/20 text-indigo-400"
-                            }`}>
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${notif.type === "interview_scheduled"
+                              ? "bg-emerald-500/20 text-emerald-400"
+                              : "bg-indigo-500/20 text-indigo-400"
+                              }`}>
                               {notif.type === "interview_scheduled" ? "🎉" : "📬"}
                             </div>
                             <div>
@@ -1073,11 +1077,10 @@ export default function SmartJobsPage() {
                               </div>
                             </div>
                           </div>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            notif.status === "sent" 
-                              ? "bg-emerald-500/20 text-emerald-300" 
-                              : "bg-amber-500/20 text-amber-300"
-                          }`}>
+                          <span className={`text-xs px-2 py-1 rounded-full ${notif.status === "sent"
+                            ? "bg-emerald-500/20 text-emerald-300"
+                            : "bg-amber-500/20 text-amber-300"
+                            }`}>
                             {notif.status === "sent" ? "Sent" : "Pending"}
                           </span>
                         </div>
@@ -1108,11 +1111,10 @@ export default function SmartJobsPage() {
                     <button
                       key={role}
                       onClick={() => toggleRole(role)}
-                      className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
-                        (preferences.target_roles || []).includes(role)
-                          ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/50"
-                          : "bg-white/5 text-muted-foreground hover:bg-white/10"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-all ${(preferences.target_roles || []).includes(role)
+                        ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/50"
+                        : "bg-white/5 text-muted-foreground hover:bg-white/10"
+                        }`}
                       data-testid={`role-${role.replace(/\s+/g, '-').toLowerCase()}`}
                     >
                       {role}
@@ -1132,11 +1134,10 @@ export default function SmartJobsPage() {
                     <button
                       key={location}
                       onClick={() => toggleLocation(location)}
-                      className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
-                        (preferences.locations || []).includes(location)
-                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50"
-                          : "bg-white/5 text-muted-foreground hover:bg-white/10"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-all ${(preferences.locations || []).includes(location)
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50"
+                        : "bg-white/5 text-muted-foreground hover:bg-white/10"
+                        }`}
                     >
                       {location}
                     </button>
@@ -1155,11 +1156,10 @@ export default function SmartJobsPage() {
                     <button
                       key={type.id}
                       onClick={() => toggleCompanyType(type.id)}
-                      className={`p-3 rounded-lg text-left transition-all ${
-                        (preferences.company_types || []).includes(type.id)
-                          ? "bg-amber-500/20 border border-amber-500/50"
-                          : "bg-white/5 hover:bg-white/10"
-                      }`}
+                      className={`p-3 rounded-lg text-left transition-all ${(preferences.company_types || []).includes(type.id)
+                        ? "bg-amber-500/20 border border-amber-500/50"
+                        : "bg-white/5 hover:bg-white/10"
+                        }`}
                     >
                       <div className="font-medium text-sm">{type.name}</div>
                       <div className="text-xs text-muted-foreground">{type.description}</div>
@@ -1224,7 +1224,7 @@ export default function SmartJobsPage() {
           )}
         </AnimatePresence>
       </main>
-      
+
       {/* Apply Preparation Modal */}
       <ApplyModal
         job={selectedJob}

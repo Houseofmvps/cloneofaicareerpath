@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Brain, Zap, Target, TrendingUp, FileText, Sparkles, 
+import {
+  Brain, Zap, Target, TrendingUp, FileText, Sparkles,
   CheckCircle2, ArrowRight, Star, Users, Award, Clock,
   BookOpen, Download, Globe, Briefcase, GraduationCap,
   ChevronRight, Play, Shield, BarChart3, FileEdit, Send,
@@ -67,7 +67,7 @@ export default function LandingPage() {
               <Brain className="w-8 h-8 text-indigo-400" />
               <span className="text-xl font-bold">TechShift AI</span>
             </div>
-            
+
             {/* Feature Navigation - All 5 Features */}
             <div className="hidden lg:flex items-center gap-4">
               <a href="#analysis" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
@@ -89,7 +89,7 @@ export default function LandingPage() {
                 Pricing
               </a>
             </div>
-            
+
             <div className="flex items-center gap-3">
               {isAuthenticated ? (
                 <Button onClick={() => navigate("/dashboard")} className="btn-primary" data-testid="dashboard-btn">
@@ -122,11 +122,11 @@ export default function LandingPage() {
               <Sparkles className="w-4 h-4 text-indigo-400" />
               <span className="text-sm text-indigo-300">Complete AI Career Platform - 5 Powerful Features</span>
             </div>
-            
+
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Land Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">AI Job</span> in 90 Days
             </h1>
-            
+
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               From skill gap analysis to job offers. Complete AI career platform with automated job applications.
             </p>
@@ -163,7 +163,7 @@ export default function LandingPage() {
               <h2 className="text-2xl font-bold mb-2">Your Complete AI Job Landing Journey</h2>
               <p className="text-muted-foreground">5 steps from confusion to offers</p>
             </div>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {[
                 { icon: Target, label: "ANALYZE", time: "5 min", color: "indigo", desc: "Find your AI role fit" },
@@ -185,7 +185,7 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            
+
             <div className="text-center mt-8">
               <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-500/20 to-rose-500/20 border border-indigo-500/30">
                 <span className="text-lg">🎯</span>
@@ -202,7 +202,7 @@ export default function LandingPage() {
             className="grid md:grid-cols-5 gap-4 max-w-6xl mx-auto"
           >
             {/* Analysis Card */}
-            <div 
+            <div
               className="glass rounded-xl p-5 border border-indigo-500/30 hover:border-indigo-500/60 transition-all cursor-pointer group"
               onClick={() => handleGetStarted("/analyze")}
               data-testid="feature-analysis"
@@ -220,7 +220,7 @@ export default function LandingPage() {
             </div>
 
             {/* Learning Card */}
-            <div 
+            <div
               className="glass rounded-xl p-5 border border-purple-500/30 hover:border-purple-500/60 transition-all cursor-pointer group"
               onClick={() => handleGetStarted("/learning-path")}
               data-testid="feature-learning"
@@ -238,7 +238,7 @@ export default function LandingPage() {
             </div>
 
             {/* Resume Card */}
-            <div 
+            <div
               className="glass rounded-xl p-5 border border-emerald-500/30 hover:border-emerald-500/60 transition-all cursor-pointer group"
               onClick={() => handleGetStarted("/cv-generator")}
               data-testid="feature-resume"
@@ -256,7 +256,7 @@ export default function LandingPage() {
             </div>
 
             {/* Cover Letter Card */}
-            <div 
+            <div
               className="glass rounded-xl p-5 border border-amber-500/30 hover:border-amber-500/60 transition-all cursor-pointer group"
               onClick={() => handleGetStarted("/cover-letter")}
               data-testid="feature-cover-letter"
@@ -274,7 +274,7 @@ export default function LandingPage() {
             </div>
 
             {/* Auto-Apply Card - Highlighted */}
-            <div 
+            <div
               className="glass rounded-xl p-5 border-2 border-rose-500/50 hover:border-rose-500 transition-all cursor-pointer group relative"
               onClick={() => handleGetStarted("/auto-apply")}
               data-testid="feature-auto-apply"
@@ -324,7 +324,7 @@ export default function LandingPage() {
               </div>
               <h2 className="text-3xl font-bold mb-4">🔍 Career Gap Analysis</h2>
               <p className="text-muted-foreground mb-6">
-                Upload your resume and discover which AI roles are the best fit. See your skill gaps, 
+                Upload your resume and discover which AI roles are the best fit. See your skill gaps,
                 transferable skills, and get a 90-day roadmap.
               </p>
               <ul className="space-y-3 mb-6">
@@ -342,8 +342,8 @@ export default function LandingPage() {
                 <div className="bg-black/20 rounded-lg p-3">
                   <div className="text-indigo-400 font-semibold mb-1">Your Best Matches</div>
                   <div className="text-sm text-muted-foreground">
-                    🥇 MLOps Engineer (92%)<br/>
-                    🥈 AI/ML Engineer (88%)<br/>
+                    🥇 MLOps Engineer (92%)<br />
+                    🥈 AI/ML Engineer (88%)<br />
                     🥉 Prompt Engineer (85%)
                   </div>
                 </div>
@@ -389,7 +389,7 @@ export default function LandingPage() {
               </div>
               <h2 className="text-3xl font-bold mb-4">📚 16-Week AI Learning Path</h2>
               <p className="text-muted-foreground mb-6">
-                Stop taking random courses. Get a personalized curriculum with real courses 
+                Stop taking random courses. Get a personalized curriculum with real courses
                 from Fast.ai, DeepLearning.AI, Coursera, and more.
               </p>
               <ul className="space-y-3 mb-6">
@@ -421,7 +421,7 @@ export default function LandingPage() {
               </div>
               <h2 className="text-3xl font-bold mb-4">📄 AI Resume That Gets Interviews</h2>
               <p className="text-muted-foreground mb-6">
-                Upload your resume and get 2 professionally formatted versions - Natural Voice 
+                Upload your resume and get 2 professionally formatted versions - Natural Voice
                 and ATS Optimized - tailored to 60+ countries.
               </p>
               <ul className="space-y-3 mb-6">
@@ -489,7 +489,7 @@ export default function LandingPage() {
               </div>
               <h2 className="text-3xl font-bold mb-4">📝 AI Cover Letter That Stands Out</h2>
               <p className="text-muted-foreground mb-6">
-                Paste a job description and get 3 personalized cover letters. Each version 
+                Paste a job description and get 3 unique variations of your cover letter. Each version
                 highlights different aspects - technical skills, problem-solving, or culture fit.
               </p>
               <ul className="space-y-3 mb-6">
@@ -498,7 +498,7 @@ export default function LandingPage() {
                 <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-amber-400" /> ATS-optimized keywords</li>
               </ul>
               <Button onClick={() => handleGetStarted("/cover-letter")} className="btn-primary">
-                Generate 3 Cover Letters <ArrowRight className="w-4 h-4 ml-2" />
+                Generate Cover Letter <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
           </motion.div>
@@ -523,7 +523,7 @@ export default function LandingPage() {
               ⚡ AI Auto-Apply - Apply to Jobs While You Sleep
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Set your preferences once. We scan job boards 24/7, match jobs to your profile, 
+              Set your preferences once. We scan job boards 24/7, match jobs to your profile,
               and auto-submit your resume + cover letter.
             </p>
           </motion.div>
@@ -710,7 +710,7 @@ export default function LandingPage() {
             <p className="text-lg text-muted-foreground mb-8">
               Get analyzed. Get trained. Get hired. Free to start. No credit card required.
             </p>
-            
+
             <div className="flex flex-wrap justify-center gap-3">
               <Button onClick={() => handleGetStarted("/analyze")} size="lg" className="btn-primary" data-testid="cta-analyze">
                 <Target className="w-5 h-5 mr-2" /> Analyze

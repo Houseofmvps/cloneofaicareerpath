@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "../lib/api";
 import { saveAs } from "file-saver";
 import {
   FileText, Upload, Sparkles, Copy, Download, Loader2,
@@ -16,24 +16,24 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import AppNavigation from "../components/AppNavigation";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 const TONE_OPTIONS = [
-  { 
-    id: "professional", 
-    name: "Professional", 
+  {
+    id: "professional",
+    name: "Professional",
     description: "Corporate tone for big tech (Google, Meta, Microsoft)",
     icon: "👔"
   },
-  { 
-    id: "confident", 
-    name: "Confident", 
+  {
+    id: "confident",
+    name: "Confident",
     description: "Bold, assertive for startups and growth companies",
     icon: "💪"
   },
-  { 
-    id: "story-driven", 
-    name: "Story-Driven", 
+  {
+    id: "story-driven",
+    name: "Story-Driven",
     description: "Personal narrative for mission-driven companies",
     icon: "📖"
   }
@@ -62,25 +62,24 @@ const GenerationStatus = ({ stage, progress }) => {
         </h3>
         <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
       </div>
-      
+
       <Progress value={progress} className="h-2" />
-      
+
       <div className="grid grid-cols-5 gap-2 mt-4">
         {stages.map((s) => (
           <div
             key={s.id}
-            className={`text-center p-2 rounded-lg transition-all ${
-              s.id < stage ? "bg-amber-500/20 text-amber-300" :
+            className={`text-center p-2 rounded-lg transition-all ${s.id < stage ? "bg-amber-500/20 text-amber-300" :
               s.id === stage ? "bg-indigo-500/30 text-indigo-300 animate-pulse" :
-              "bg-white/5 text-muted-foreground"
-            }`}
+                "bg-white/5 text-muted-foreground"
+              }`}
           >
             <div className="text-lg mb-1">{s.icon}</div>
             <div className="text-xs">{s.name}</div>
           </div>
         ))}
       </div>
-      
+
       <p className="text-center text-sm text-muted-foreground mt-2">
         Creating your optimized cover letter...
       </p>
@@ -101,8 +100,7 @@ const VersionCard = ({ version, index, coverLetterId, onCopy }) => {
       formData.append("version_index", index);
       formData.append("format", format);
 
-      const response = await axios.post(`${API}/cover-letter/download`, formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      const response = await api.post(`/cover-letter/download`, formData, {
         responseType: "blob"
       });
 
@@ -221,14 +219,14 @@ export default function CoverLetterPage() {
   const [loading, setLoading] = useState(false);
   const [generationStage, setGenerationStage] = useState(0);
   const [generationProgress, setGenerationProgress] = useState(0);
-  
+
   // Form state
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [targetRole, setTargetRole] = useState("");
   const [selectedTone, setSelectedTone] = useState("professional");
-  
+
   // Results
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
@@ -243,9 +241,7 @@ export default function CoverLetterPage() {
 
   const fetchHistory = async () => {
     try {
-      const response = await axios.get(`${API}/cover-letter/history`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const response = await api.get(`/cover-letter/history`);
       setHistory(response.data.cover_letters || []);
     } catch (error) {
       console.error("Failed to fetch history:", error);
@@ -263,10 +259,9 @@ export default function CoverLetterPage() {
     formData.append("file", file);
 
     try {
-      const response = await axios.post(`${API}/resume/parse`, formData, {
+      const response = await api.post(`/resume/parse`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          "Content-Type": "multipart/form-data"
         },
         onUploadProgress: (progressEvent) => {
           const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -311,22 +306,21 @@ export default function CoverLetterPage() {
     }, 500);
 
     try {
-      const response = await axios.post(
-        `${API}/cover-letter/generate`,
+      const response = await api.post(
+        `/cover-letter/generate`,
         {
           resume_text: resumeText,
           job_description: jobDescription,
           company_name: companyName,
           target_role: targetRole,
           tone: selectedTone
-        },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        }
       );
 
       clearInterval(progressInterval);
       setGenerationProgress(100);
       setGenerationStage(5);
-      
+
       setTimeout(() => {
         setResult(response.data);
         setLoading(false);
@@ -336,13 +330,13 @@ export default function CoverLetterPage() {
     } catch (error) {
       clearInterval(progressInterval);
       setLoading(false);
-      
+
       if (error.response?.status === 403) {
         toast.error("Monthly limit reached. Upgrade to Pro for unlimited cover letters.");
       } else {
         const detail = error.response?.data?.detail;
         let errorMessage = "Generation failed";
-        
+
         if (typeof detail === "string") {
           errorMessage = detail;
         } else if (Array.isArray(detail) && detail.length > 0) {
@@ -350,7 +344,7 @@ export default function CoverLetterPage() {
         } else if (typeof detail === "object" && detail?.message) {
           errorMessage = detail.message;
         }
-        
+
         toast.error(errorMessage);
       }
     }
@@ -359,7 +353,7 @@ export default function CoverLetterPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppNavigation />
-      
+
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
@@ -373,7 +367,7 @@ export default function CoverLetterPage() {
           </div>
           <h1 className="text-3xl font-bold mb-2">AI Cover Letter That Gets Interviews</h1>
           <p className="text-muted-foreground">
-            Paste a job description. Get 3 personalized cover letters in seconds.
+            Paste a job description. Get 3 unique variations of a personalized cover letter in seconds.
           </p>
         </motion.div>
 
@@ -560,11 +554,10 @@ export default function CoverLetterPage() {
                     <button
                       key={tone.id}
                       onClick={() => setSelectedTone(tone.id)}
-                      className={`p-3 rounded-lg border transition-all text-left ${
-                        selectedTone === tone.id
-                          ? "border-amber-500 bg-amber-500/10"
-                          : "border-white/10 hover:border-white/20"
-                      }`}
+                      className={`p-3 rounded-lg border transition-all text-left ${selectedTone === tone.id
+                        ? "border-amber-500 bg-amber-500/10"
+                        : "border-white/10 hover:border-white/20"
+                        }`}
                       data-testid={`tone-${tone.id}`}
                     >
                       <div className="text-lg mb-1">{tone.icon}</div>
@@ -583,7 +576,7 @@ export default function CoverLetterPage() {
                 data-testid="generate-cover-letter-btn"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                Generate 3 Cover Letters
+                Generate Cover Letter
               </Button>
 
               <p className="text-xs text-center text-muted-foreground">

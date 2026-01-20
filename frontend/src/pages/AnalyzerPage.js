@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "../lib/api";
 import {
   Brain, Upload, FileText, ChevronLeft, ChevronRight, Loader2,
   Search, Briefcase, GraduationCap, Code, Clock, DollarSign,
@@ -15,7 +15,7 @@ import { Progress } from "../components/ui/progress";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 const STEPS = [
   { id: 1, title: "Upload Resume", icon: FileText },
@@ -53,9 +53,9 @@ const AnalysisStatus = ({ stage, progress }) => {
           <Loader2 className="w-8 h-8 animate-spin text-white" />
         </div>
         <h3 className="text-xl font-bold">Analyzing Your Career Fit...</h3>
-        <p className="text-muted-foreground mt-1">Powered by Claude AI</p>
+        <p className="text-muted-foreground mt-1">Powered by Techshift AI</p>
       </div>
-      
+
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span>Progress</span>
@@ -63,23 +63,22 @@ const AnalysisStatus = ({ stage, progress }) => {
         </div>
         <Progress value={progress} className="h-3" />
       </div>
-      
+
       <div className="grid grid-cols-5 gap-2">
         {stages.map((s) => (
           <div
             key={s.id}
-            className={`text-center p-3 rounded-xl transition-all ${
-              s.id < stage ? "bg-emerald-500/20 text-emerald-300" :
+            className={`text-center p-3 rounded-xl transition-all ${s.id < stage ? "bg-emerald-500/20 text-emerald-300" :
               s.id === stage ? "bg-indigo-500/30 text-indigo-300 animate-pulse" :
-              "bg-white/5 text-muted-foreground"
-            }`}
+                "bg-white/5 text-muted-foreground"
+              }`}
           >
             <div className="text-2xl mb-1">{s.icon}</div>
             <div className="text-xs font-medium">{s.name}</div>
           </div>
         ))}
       </div>
-      
+
       <p className="text-center text-sm text-muted-foreground">
         This takes about 30-60 seconds. We're analyzing your skills, career trajectory, and ATS compatibility...
       </p>
@@ -97,7 +96,7 @@ export default function AnalyzerPage() {
   const [roles, setRoles] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("us");
-  
+
   // Form data
   const [resumeData, setResumeData] = useState(null);
   const [resumeText, setResumeText] = useState("");
@@ -111,7 +110,7 @@ export default function AnalyzerPage() {
   });
   const [selectedRole, setSelectedRole] = useState(null);
   const [skillInput, setSkillInput] = useState("");
-  
+
   // Upload progress state
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -123,7 +122,7 @@ export default function AnalyzerPage() {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get(`${API}/roles?location=${selectedLocation}`);
+      const response = await api.get(`/roles?location=${selectedLocation}`);
       setRoles(response.data.roles || []);
     } catch (error) {
       console.error("Failed to fetch roles:", error);
@@ -132,38 +131,38 @@ export default function AnalyzerPage() {
 
   const handleFileUpload = async (file) => {
     if (!file) return;
-    
+
     // Validate file size (max 10MB)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error("File too large. Maximum size is 10MB.");
       return;
     }
-    
+
     // Start upload with progress tracking
     setUploading(true);
     setUploadProgress(0);
     setUploadFileName(file.name);
-    
+
     const formData = new FormData();
     formData.append("file", file);
-    
+
     try {
-      const response = await axios.post(`${API}/resume/parse`, formData, {
+      const response = await api.post(`/resume/parse`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setUploadProgress(percentCompleted);
         }
       });
-      
+
       // Show 100% briefly before completing
       setUploadProgress(100);
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       setResumeData(response.data.resume_data);
       setResumeText(response.data.resume_data.raw_text);
-      
+
       // Auto-fill background context from parsed resume
       if (response.data.resume_data.current_role) {
         setBackgroundContext(prev => ({
@@ -183,14 +182,14 @@ export default function AnalyzerPage() {
           primary_skills: response.data.resume_data.skills.slice(0, 10)
         }));
       }
-      
+
       setUploading(false);
       setUploadProgress(0);
       toast.success(`"${file.name}" parsed successfully!`);
     } catch (error) {
       setUploading(false);
       setUploadProgress(0);
-      
+
       if (error.response?.status === 400) {
         toast.error("Unsupported file format. Please upload PDF, DOCX, or TXT files.");
       } else {
@@ -204,15 +203,15 @@ export default function AnalyzerPage() {
       toast.error("Please paste your resume text");
       return;
     }
-    
+
     const formData = new FormData();
     formData.append("text", resumeText);
-    
+
     setLoading(true);
     try {
       const response = await axios.post(`${API}/resume/parse`, formData);
       setResumeData(response.data.resume_data);
-      
+
       // Auto-fill from parsed data
       if (response.data.resume_data.skills?.length) {
         setBackgroundContext(prev => ({
@@ -220,7 +219,7 @@ export default function AnalyzerPage() {
           primary_skills: response.data.resume_data.skills.slice(0, 10)
         }));
       }
-      
+
       toast.success("Resume parsed successfully!");
       setCurrentStep(2);
     } catch (error) {
@@ -264,47 +263,71 @@ export default function AnalyzerPage() {
       toast.error("Please complete all steps");
       return;
     }
-    
+
     setLoading(true);
     setCurrentStep(4);
     setAnalysisStage(1);
     setAnalysisProgress(10);
-    
+
     // Simulate progress stages
     const progressInterval = setInterval(() => {
       setAnalysisProgress(prev => {
         if (prev >= 90) return prev;
         const newProgress = prev + Math.random() * 10;
-        
+
         // Update stage based on progress
         if (newProgress > 20 && newProgress <= 40) setAnalysisStage(2);
         else if (newProgress > 40 && newProgress <= 60) setAnalysisStage(3);
         else if (newProgress > 60 && newProgress <= 80) setAnalysisStage(4);
         else if (newProgress > 80) setAnalysisStage(5);
-        
+
         return Math.min(newProgress, 90);
       });
     }, 1200);
-    
+
+    // Sanitize resume data to ensure lists are valid
+    const sanitizedResumeData = {
+      ...resumeData,
+      education: Array.isArray(resumeData.education) ? resumeData.education : [],
+      experience: Array.isArray(resumeData.experience) ? resumeData.experience : [],
+      skills: Array.isArray(resumeData.skills) ? resumeData.skills : [],
+      certifications: Array.isArray(resumeData.certifications) ? resumeData.certifications : []
+    };
+
     try {
-      const response = await axios.post(`${API}/analyze`, {
-        resume_data: resumeData,
+      const response = await api.post(`/analyze`, {
+        resume_data: sanitizedResumeData,
         target_role_id: selectedRole.id,
         background_context: backgroundContext
       });
-      
+
       clearInterval(progressInterval);
       setAnalysisProgress(100);
       setAnalysisStage(5);
-      
+
       setTimeout(() => {
         toast.success("Analysis complete!");
         navigate(`/results/${response.data.analysis_id}`);
       }, 500);
-      
+
     } catch (error) {
       clearInterval(progressInterval);
-      const message = error.response?.data?.detail || "Analysis failed. Please try again.";
+      let message = "Analysis failed. Please try again.";
+
+      if (error.response?.data?.detail) {
+        if (Array.isArray(error.response.data.detail)) {
+          // Handle Pydantic validation errors (array of objects)
+          message = error.response.data.detail
+            .map(err => err.msg || "Invalid input")
+            .join(". ");
+        } else if (typeof error.response.data.detail === "object") {
+          // Handle other object errors
+          message = JSON.stringify(error.response.data.detail);
+        } else {
+          // Handle string errors
+          message = error.response.data.detail;
+        }
+      }
       toast.error(message);
       setCurrentStep(3);
       setLoading(false);
@@ -339,7 +362,7 @@ export default function AnalyzerPage() {
               </div>
               <span className="text-xl font-bold gradient-text">CareerLift</span>
             </Link>
-            
+
             <Button variant="ghost" onClick={() => navigate("/dashboard")} data-testid="analyzer-back-btn">
               <ChevronLeft className="w-4 h-4 mr-1" />
               Back to Dashboard
@@ -356,8 +379,8 @@ export default function AnalyzerPage() {
               <div className="flex flex-col items-center">
                 <div className={`
                   w-12 h-12 rounded-xl flex items-center justify-center transition-all
-                  ${currentStep >= step.id 
-                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white' 
+                  ${currentStep >= step.id
+                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white'
                     : 'bg-gray-800 text-muted-foreground'
                   }
                 `}>
@@ -722,8 +745,8 @@ export default function AnalyzerPage() {
                     whileTap={{ scale: 0.98 }}
                     className={`
                       glass rounded-xl p-5 cursor-pointer transition-all
-                      ${selectedRole?.id === role.id 
-                        ? 'border-2 border-indigo-500 glow-primary' 
+                      ${selectedRole?.id === role.id
+                        ? 'border-2 border-indigo-500 glow-primary'
                         : 'border border-white/10 hover:border-indigo-500/50'
                       }
                       ${role.fastest_path ? 'ring-2 ring-amber-500/50' : ''}

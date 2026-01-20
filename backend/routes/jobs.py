@@ -321,6 +321,126 @@ async def search_jobs(
         raise HTTPException(status_code=500, detail=f"Job search failed: {str(e)}")
 
 
+@router.post("/auto-apply/prepare-application")
+async def prepare_job_application(
+    request: JobApplyRequest,
+    user: dict = Depends(get_current_user)
+):
+    """Generate cover letter for job application - returns 3 distinct variations"""
+    # Get user's resume
+    latest_resume = await db.resume_scans.find_one(
+        {"user_id": user["id"]},
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
+    
+    if not latest_resume:
+        raise HTTPException(
+            status_code=400,
+            detail="No resume found. Please upload your resume first."
+        )
+    
+    resume_text = latest_resume.get("raw_text", "")
+    
+    # Import cover letter generation logic
+    from routes.cover_letter import get_cover_letter_prompt
+    import anthropic
+    from config import ANTHROPIC_API_KEY
+    import re
+    import json
+    
+    claude_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY) if ANTHROPIC_API_KEY else None
+    
+    if not claude_client:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    user_message = f"""
+Generate 3 DISTINCT cover letter variations for this job application:
+
+COMPANY: {request.company}
+TARGET ROLE: {request.job_title}
+
+JOB DESCRIPTION:
+{request.job_description[:4000] if request.job_description else "Not provided"}
+
+CANDIDATE'S RESUME:
+{resume_text[:4000]}
+
+IMPORTANT REQUIREMENTS:
+1. Generate all 3 variations as specified in the system prompt:
+   - Technical Expert (professional tone)
+   - Problem Solver (confident tone)
+   - Culture Champion (story-driven tone)
+
+2. Each variation must:
+   - Be 300-350 words
+   - Have a unique opening hook
+   - Include specific company research
+   - Use 8-12 keywords from the job description
+   - Reference specific examples from the resume with metrics
+   - Feel completely different from the other variations
+
+3. Research the company based on the company name and job description to include:
+   - Specific products, technologies, or initiatives
+   - Company mission, values, or culture
+   - Recent news or developments (if inferable from context)
+
+Make these the BEST, most personalized cover letters that will get interviews.
+"""
+    
+    try:
+        response = claude_client.messages.create(
+            model="claude-sonnet-4-20250514",  # Sonnet handles complex variations better
+            max_tokens=4000,  # Optimized for 3 variations
+            system=get_cover_letter_prompt(),
+            messages=[{"role": "user", "content": user_message}]
+        )
+        
+        response_text = response.content[0].text
+        response_text = re.sub(r'```json\s*', '', response_text)
+        response_text = re.sub(r'```\s*', '', response_text)
+        
+        cover_letter_data = json.loads(response_text)
+        
+        # Validate that we have 3 versions
+        if "versions" not in cover_letter_data or len(cover_letter_data.get("versions", [])) != 3:
+            logging.error(f"Cover letter did not return 3 variations: {cover_letter_data.keys()}")
+            raise HTTPException(status_code=500, detail="Failed to generate 3 cover letter variations")
+        
+        # Save to database
+        cover_letter_id = str(uuid.uuid4())
+        await db.cover_letters.insert_one({
+            "id": cover_letter_id,
+            "user_id": user["id"],
+            "company_name": request.company,
+            "target_role": request.job_title,
+            "job_id": request.job_id,
+            "job_url": request.job_url,
+            "tone": request.cover_letter_tone,
+            "job_description": request.job_description[:1000] if request.job_description else "",
+            "versions": cover_letter_data.get("versions", []),
+            "company_research": cover_letter_data.get("company_research", {}),
+            "job_match_analysis": cover_letter_data.get("job_match_analysis", {}),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {
+            "cover_letter_id": cover_letter_id,
+            "cover_letter": cover_letter_data.get("versions", [])[0].get("cover_letter", ""),  # Return first variation as default
+            "versions": cover_letter_data.get("versions", []),
+            "company_research": cover_letter_data.get("company_research", {}),
+            "job_match_analysis": cover_letter_data.get("job_match_analysis", {}),
+            "message": "Generated 3 distinct cover letter variations"
+        }
+        
+    except json.JSONDecodeError as e:
+        logging.error(f"Cover letter JSON parse error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to parse cover letter response")
+    except Exception as e:
+        logging.error(f"Cover letter generation error: {e}")
+        raise HTTPException(status_code=500, detail=f"Cover letter generation failed: {str(e)}")
+
+
 @router.post("/auto-apply/apply/{job_id}")
 async def apply_to_job(
     job_id: str,

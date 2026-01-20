@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "../lib/api";
 import {
   FileSearch, Upload, Sparkles, Target, AlertCircle, CheckCircle2,
   XCircle, Loader2, ArrowRight, TrendingUp, AlertTriangle, Zap,
@@ -15,7 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import AppNavigation from "../components/AppNavigation";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 // Grade color mapping
 const getGradeColor = (grade) => {
@@ -55,7 +55,7 @@ export default function ResumeScannerPage() {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get(`${API}/roles`);
+      const response = await api.get(`/roles`);
       setRoles(response.data.roles || []);
     } catch (error) {
       console.error("Failed to fetch roles:", error);
@@ -64,7 +64,7 @@ export default function ResumeScannerPage() {
 
   const fetchUsage = async () => {
     try {
-      const response = await axios.get(`${API}/resume/scan/usage`);
+      const response = await api.get(`/resume/scan/usage`);
       setUsage({
         used: response.data.scans_used,
         limit: response.data.scans_limit,
@@ -77,7 +77,7 @@ export default function ResumeScannerPage() {
 
   const fetchHistory = async () => {
     try {
-      const response = await axios.get(`${API}/resume/scan/history`);
+      const response = await api.get(`/resume/scan/history`);
       setScanHistory(response.data.scans || []);
     } catch (error) {
       console.error("Failed to fetch history:", error);
@@ -92,13 +92,13 @@ export default function ResumeScannerPage() {
 
   const handleFileUpload = async (file) => {
     if (!file) return;
-    
+
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-    
+
     try {
-      const response = await axios.post(`${API}/resume/parse`, formData, {
+      const response = await api.post(`/resume/parse`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       setResumeText(response.data.text || "");
@@ -125,11 +125,11 @@ export default function ResumeScannerPage() {
     setScanResult(null);
 
     try {
-      const response = await axios.post(`${API}/resume/scan`, {
+      const response = await api.post(`/resume/scan`, {
         resume_text: resumeText,
         target_role_id: selectedRole
       });
-      
+
       setScanResult(response.data);
       setUsage({
         used: response.data.usage.scans_used,
@@ -141,7 +141,7 @@ export default function ResumeScannerPage() {
     } catch (error) {
       const detail = error.response?.data?.detail;
       let errorMessage = "Failed to scan resume";
-      
+
       if (typeof detail === "string") {
         errorMessage = detail;
       } else if (Array.isArray(detail) && detail.length > 0) {
@@ -150,7 +150,7 @@ export default function ResumeScannerPage() {
       } else if (typeof detail === "object" && detail?.message) {
         errorMessage = detail.message;
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -180,7 +180,7 @@ export default function ResumeScannerPage() {
                 Get instant ATS score and actionable improvements
               </p>
             </div>
-            
+
             <div className="glass rounded-xl px-6 py-4 text-center">
               <div className="text-sm text-muted-foreground mb-1">FREE Scans</div>
               <div className="text-2xl font-bold">
@@ -204,7 +204,7 @@ export default function ResumeScannerPage() {
             {/* Resume Input */}
             <div className="glass rounded-2xl p-6">
               <Label className="text-lg font-semibold mb-4 block">Your Resume</Label>
-              
+
               <div className="mb-4">
                 <input
                   type="file"
@@ -214,7 +214,7 @@ export default function ResumeScannerPage() {
                   onChange={(e) => handleFileUpload(e.target.files[0])}
                   disabled={uploading}
                 />
-                
+
                 <label
                   htmlFor="scanner-file-upload"
                   className={`flex items-center justify-center gap-2 p-4 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-indigo-500/50 transition-colors ${uploading ? "opacity-50" : ""}`}
@@ -227,7 +227,7 @@ export default function ResumeScannerPage() {
                   <span>{uploading ? "Processing..." : "Upload PDF/DOCX or paste below"}</span>
                 </label>
               </div>
-              
+
               <Textarea
                 placeholder="Paste your resume text here..."
                 className="min-h-[200px] input-dark"
@@ -245,7 +245,7 @@ export default function ResumeScannerPage() {
                 <Target className="w-5 h-5 inline mr-2 text-indigo-400" />
                 Target Role
               </Label>
-              
+
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
@@ -333,7 +333,7 @@ export default function ResumeScannerPage() {
                 </p>
               </div>
             )}
-            
+
             {!loading && scanResult ? (
               <>
                 {/* Overall Grade */}
@@ -482,7 +482,7 @@ export default function ResumeScannerPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Generate an ATS-optimized, professionally written resume that addresses all these issues.
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => navigate("/cv-generator")}
                     className="w-full btn-primary"
                   >

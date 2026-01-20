@@ -39,61 +39,101 @@ class CoverLetterRequest(BaseModel):
 
 
 def get_cover_letter_prompt():
-    """System prompt for cover letter generation - Optimized single version"""
-    return """You are an expert cover letter writer specializing in AI/ML job applications.
+    """System prompt for cover letter generation - Natural, human-sounding variations"""
+    return """You are an expert career coach who writes authentic, compelling cover letters for tech professionals. Your letters sound natural and human - never robotic or templated.
 
-Your task is to generate ONE PERFECT cover letter that:
-1. Is highly personalized to the specific job description
-2. Highlights the most relevant transferable skills from the resume
-3. Demonstrates genuine interest and knowledge about the company
-4. Is ATS-optimized with relevant keywords from the job posting
-5. Balances technical expertise with problem-solving ability and culture fit
+Generate 3 DISTINCT cover letter variations. Each should feel like it was written by a real person who genuinely cares about the role.
 
-TONE OPTIONS (apply the requested tone):
-- "professional": Corporate, formal tone suitable for big tech companies
-- "confident": Bold, assertive tone suitable for startups  
-- "story-driven": Personal narrative tone suitable for mission-driven companies
+WRITING STYLE GUIDELINES:
+- Write conversationally but professionally (like talking to a colleague, not a robot)
+- Use contractions naturally (I'm, I've, you're) to sound human
+- Vary sentence length - mix short punchy sentences with longer explanatory ones
+- Use active voice and strong verbs
+- NO corporate jargon, buzzwords, or clichés ("synergy," "leverage," "dynamic team player")
+- NO generic openings like "I am writing to express my interest..."
+- Show personality while staying professional
 
-COVER LETTER STRUCTURE:
-1. OPENING HOOK (2-3 sentences): Grab attention with a specific achievement or insight about the company
-2. VALUE PROPOSITION (1 paragraph): Your most relevant skills and how they solve their problems
-3. PROOF POINTS (1-2 paragraphs): Specific examples with metrics from your experience
-4. COMPANY ALIGNMENT (1 paragraph): Why THIS company, demonstrate research
-5. CLOSING (2-3 sentences): Clear call to action, availability
+VARIATION 1 - "TECHNICAL DEPTH"
+Tone: Conversational but technically credible
+Focus: Demonstrate deep technical expertise through specific examples
+Opening: Lead with a technical observation about their product/stack or a relevant project you built
+Example: "I've been following [Company]'s work on [specific tech]. When I saw you're hiring, I knew I had to reach out - I recently built something similar that [specific achievement]."
+
+VARIATION 2 - "IMPACT & RESULTS"  
+Tone: Confident and results-oriented (but not arrogant)
+Focus: Quantifiable business impact and problem-solving
+Opening: Lead with a relevant achievement or problem you've solved
+Example: "Last quarter, I reduced our ML model's inference time by 60%, saving $200K annually. When I saw [Company] is tackling [similar challenge], I got excited."
+
+VARIATION 3 - "AUTHENTIC CONNECTION"
+Tone: Warm, genuine, story-driven
+Focus: Personal connection to company mission and collaborative mindset
+Opening: Lead with why you care about what they're building
+Example: "I've been a [Company] user for [time] and [specific feature] changed how I work. The chance to build this is why I got into ML."
+
+CRITICAL REQUIREMENTS:
+1. **Sound Human**: Read each letter aloud - if it sounds like a robot wrote it, rewrite it
+2. **Be Specific**: Use actual numbers, technologies, and project names from the resume
+3. **Show, Don't Tell**: Instead of "I'm passionate," say "I spent weekends building X because..."
+4. **Natural Keywords**: Weave in 6-8 keywords from job description organically
+5. **Length**: 250-300 words (shorter is better - hiring managers are busy)
+
+AVOID:
+- "I am writing to apply for..."
+- "I am excited to submit my application..."
+- "I believe I would be a great fit..."
+- Listing skills without context
+- Generic enthusiasm ("passionate," "excited," "thrilled")
+- Overly formal language
 
 OUTPUT FORMAT (JSON):
 {
-    "cover_letter": {
-        "content": "Full cover letter text here (300-400 words)...",
-        "tone_applied": "professional",
-        "word_count": 350,
-        "key_highlights": ["highlight1", "highlight2", "highlight3"],
-        "keywords_used": ["keyword1", "keyword2", "keyword3"],
-        "ats_score": 92
-    },
+    "versions": [
+        {
+            "version_name": "Technical Depth",
+            "tone_applied": "conversational_technical",
+            "emphasis_area": "technical_expertise",
+            "cover_letter": "[Full letter text]",
+            "key_highlights": ["achievement 1", "achievement 2", "achievement 3"],
+            "keywords_used": ["keyword1", "keyword2", ...],
+            "word_count": 280,
+            "ats_score": 90
+        },
+        {
+            "version_name": "Impact & Results",
+            "tone_applied": "confident_results",
+            "emphasis_area": "business_impact",
+            "cover_letter": "[Full letter text]",
+            "key_highlights": ["impact 1", "impact 2", "impact 3"],
+            "keywords_used": ["keyword1", "keyword2", ...],
+            "word_count": 270,
+            "ats_score": 88
+        },
+        {
+            "version_name": "Authentic Connection",
+            "tone_applied": "warm_genuine",
+            "emphasis_area": "culture_mission_fit",
+            "cover_letter": "[Full letter text]",
+            "key_highlights": ["connection 1", "connection 2", "connection 3"],
+            "keywords_used": ["keyword1", "keyword2", ...],
+            "word_count": 265,
+            "ats_score": 85
+        }
+    ],
     "company_research": {
         "company_name": "Company Name",
-        "industry": "AI/Tech",
-        "notable_products": ["product1", "product2"],
-        "culture_notes": "Brief culture analysis",
-        "why_good_fit": "Why candidate fits this company"
+        "products_mentioned": ["product1", "product2"],
+        "why_compelling": "Brief note on what makes this company interesting"
     },
     "job_match_analysis": {
         "match_score": 85,
-        "matching_skills": ["skill1", "skill2"],
-        "skills_emphasized": ["skill1", "skill2"],
+        "matching_skills": ["skill1", "skill2", "skill3"],
+        "skills_emphasized": ["skill1", "skill2", "skill3"],
         "potential_gaps": ["gap1"]
     }
 }
 
-CRITICAL RULES:
-- Output ONLY valid JSON
-- Cover letter should be 300-400 words
-- Use specific examples and metrics from the resume
-- Include 5-10 keywords from the job description naturally
-- Never use generic phrases like "I am writing to apply..."
-- Start with a compelling hook that shows company knowledge
-- Every paragraph should add value
+REMEMBER: Write like a human, not a corporate robot. Be specific, be authentic, be concise.
 """
 
 
@@ -134,30 +174,43 @@ async def generate_cover_letter(
         )
     
     user_message = f"""
-Generate ONE perfect cover letter for this job application:
+Generate 3 DISTINCT cover letter variations for this job application:
 
 COMPANY: {request.company_name or "Not specified"}
 TARGET ROLE: {request.target_role or "AI/ML Position"}
-REQUESTED TONE: {request.tone}
 
 JOB DESCRIPTION:
-{request.job_description[:3000]}
+{request.job_description[:4000]}
 
 CANDIDATE'S RESUME:
-{request.resume_text[:3000]}
+{request.resume_text[:4000]}
 
-Create the BEST possible cover letter that:
-- Perfectly matches this specific job
-- Highlights the candidate's most relevant experience
-- Uses keywords from the job description
-- Shows genuine knowledge of the company
-- Applies the "{request.tone}" tone throughout
+IMPORTANT REQUIREMENTS:
+1. Generate all 3 variations as specified in the system prompt:
+   - Technical Expert (professional tone)
+   - Problem Solver (confident tone)
+   - Culture Champion (story-driven tone)
+
+2. Each variation must:
+   - Be 300-350 words
+   - Have a unique opening hook
+   - Include specific company research
+   - Use 8-12 keywords from the job description
+   - Reference specific examples from the resume with metrics
+   - Feel completely different from the other variations
+
+3. Research the company based on the company name and job description to include:
+   - Specific products, technologies, or initiatives
+   - Company mission, values, or culture
+   - Recent news or developments (if inferable from context)
+
+Make these the BEST, most personalized cover letters that will get interviews.
 """
     
     try:
         response = claude_client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=1500,  # Reduced from 4000 - only need 1 version
+            model="claude-sonnet-4-20250514",  # Sonnet handles complex variations better
+            max_tokens=4000,  # Optimized for 3 variations
             system=get_cover_letter_prompt(),
             messages=[{"role": "user", "content": user_message}]
         )
@@ -168,18 +221,10 @@ Create the BEST possible cover letter that:
         
         cover_letter_data = json.loads(response_text)
         
-        # Transform to consistent format (single version in versions array for backward compatibility)
-        if "cover_letter" in cover_letter_data and isinstance(cover_letter_data["cover_letter"], dict):
-            cl = cover_letter_data["cover_letter"]
-            cover_letter_data["versions"] = [{
-                "version_name": "Optimized",
-                "tone_applied": cl.get("tone_applied", request.tone),
-                "cover_letter": cl.get("content", ""),
-                "key_highlights": cl.get("key_highlights", []),
-                "keywords_used": cl.get("keywords_used", []),
-                "word_count": cl.get("word_count", 350),
-                "ats_score": cl.get("ats_score", 90)
-            }]
+        # Validate that we have 3 versions
+        if "versions" not in cover_letter_data or len(cover_letter_data.get("versions", [])) != 3:
+            logging.error(f"Cover letter did not return 3 variations: {cover_letter_data.keys()}")
+            raise HTTPException(status_code=500, detail="Failed to generate 3 cover letter variations")
             
     except json.JSONDecodeError as e:
         logging.error(f"Cover letter JSON parse error: {e}")
@@ -246,16 +291,20 @@ async def get_cover_letter(cover_letter_id: str, user: dict = Depends(get_curren
     return cover_letter
 
 
+class CoverLetterDownloadRequest(BaseModel):
+    cover_letter_id: str
+    version_index: int = 0
+    format: str = "pdf"
+
+
 @router.post("/download")
 async def download_cover_letter(
-    cover_letter_id: str = Form(...),
-    version_index: int = Form(0),
-    format: str = Form("pdf"),
+    request: CoverLetterDownloadRequest,
     user: dict = Depends(get_current_user)
 ):
     """Download cover letter as PDF or DOCX"""
     cover_letter = await db.cover_letters.find_one(
-        {"id": cover_letter_id, "user_id": user["id"]},
+        {"id": request.cover_letter_id, "user_id": user["id"]},
         {"_id": 0}
     )
     
@@ -263,15 +312,15 @@ async def download_cover_letter(
         raise HTTPException(status_code=404, detail="Cover letter not found")
     
     versions = cover_letter.get("versions", [])
-    if version_index >= len(versions):
+    if request.version_index >= len(versions):
         raise HTTPException(status_code=400, detail="Invalid version index")
     
-    version = versions[version_index]
+    version = versions[request.version_index]
     cover_letter_text = version.get("cover_letter", "")
     
     file_id = str(uuid.uuid4())[:8]
     
-    if format == "docx":
+    if request.format == "docx":
         filename = f"cover_letter_{file_id}.docx"
         filepath = DOWNLOADS_DIR / filename
         

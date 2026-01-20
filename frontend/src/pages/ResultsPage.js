@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "../lib/api";
 import {
   Brain, ChevronLeft, Target, FileText, TrendingUp, AlertTriangle,
   CheckCircle2, XCircle, Clock, DollarSign, BookOpen, Copy, Download,
@@ -16,7 +16,7 @@ import {
   RadialBarChart, RadialBar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip
 } from "recharts";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 export default function ResultsPage() {
   const { analysisId } = useParams();
@@ -32,7 +32,7 @@ export default function ResultsPage() {
 
   const fetchAnalysis = async () => {
     try {
-      const response = await axios.get(`${API}/analyses/${analysisId}`);
+      const response = await api.get(`/analyses/${analysisId}`);
       setAnalysis(response.data);
     } catch (error) {
       toast.error("Failed to load analysis");
@@ -299,7 +299,7 @@ export default function ResultsPage() {
                 ATS Score Breakdown
               </h3>
               <p className="text-muted-foreground mb-4">{result?.ats_score?.explanation}</p>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <h4 className="font-medium text-emerald-400 mb-3 flex items-center gap-2">
@@ -328,7 +328,7 @@ export default function ResultsPage() {
                   </ul>
                 </div>
               </div>
-              
+
               <div className="mt-6 pt-6 border-t border-white/10">
                 <h4 className="font-medium mb-3">Quick Fixes</h4>
                 <div className="grid md:grid-cols-2 gap-3">

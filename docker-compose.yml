@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - DB_NAME=careerlift
+      - JWT_SECRET=${JWT_SECRET}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ADZUNA_APP_ID=${ADZUNA_APP_ID}
+      - ADZUNA_APP_KEY=${ADZUNA_APP_KEY}
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8000
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

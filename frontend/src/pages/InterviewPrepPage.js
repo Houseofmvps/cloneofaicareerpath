@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "../lib/api";
 import {
   MessageSquare, Brain, Code, Users, Sparkles, Loader2,
   ChevronRight, ChevronDown, CheckCircle2, XCircle, RefreshCw,
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import AppNavigation from "../components/AppNavigation";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 // Question categories with icons
 const QUESTION_CATEGORIES = [
@@ -90,11 +90,10 @@ const QuestionCard = ({ question, index, onAnswer, onGetHint, onGetFeedback, isE
         </div>
         <div className="flex items-center gap-2">
           {feedback && (
-            <span className={`text-xs px-2 py-1 rounded-full ${
-              feedback.score >= 80 ? "bg-green-500/20 text-green-400" :
-              feedback.score >= 60 ? "bg-yellow-500/20 text-yellow-400" :
-              "bg-red-500/20 text-red-400"
-            }`}>
+            <span className={`text-xs px-2 py-1 rounded-full ${feedback.score >= 80 ? "bg-green-500/20 text-green-400" :
+                feedback.score >= 60 ? "bg-yellow-500/20 text-yellow-400" :
+                  "bg-red-500/20 text-red-400"
+              }`}>
               {feedback.score}%
             </span>
           )}
@@ -186,11 +185,10 @@ const QuestionCard = ({ question, index, onAnswer, onGetHint, onGetFeedback, isE
                 >
                   {/* Score */}
                   <div className="flex items-center gap-4">
-                    <div className={`text-3xl font-bold ${
-                      feedback.score >= 80 ? "text-green-400" :
-                      feedback.score >= 60 ? "text-yellow-400" :
-                      "text-red-400"
-                    }`}>
+                    <div className={`text-3xl font-bold ${feedback.score >= 80 ? "text-green-400" :
+                        feedback.score >= 60 ? "text-yellow-400" :
+                          "text-red-400"
+                      }`}>
                       {feedback.score}/100
                     </div>
                     <div className="flex-1">
@@ -267,7 +265,7 @@ export default function InterviewPrepPage() {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get(`${API}/roles`);
+      const response = await api.get(`/roles`);
       setRoles(response.data.roles || []);
       if (response.data.roles?.length > 0) {
         setSelectedRole(response.data.roles[0].id);
@@ -279,7 +277,7 @@ export default function InterviewPrepPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await axios.get(`${API}/interview-prep/companies`);
+      const response = await api.get(`/interview-prep/companies`);
       setCompanies(response.data.companies || []);
     } catch (error) {
       console.error("Failed to fetch companies:", error);
@@ -288,7 +286,7 @@ export default function InterviewPrepPage() {
 
   const fetchPracticeHistory = async () => {
     try {
-      const response = await axios.get(`${API}/interview-prep/history`);
+      const response = await api.get(`/interview-prep/history`);
       setPracticeHistory(response.data.history || []);
       setStats(response.data.stats || { total_practiced: 0, avg_score: 0, streak: 0 });
     } catch (error) {
@@ -303,7 +301,7 @@ export default function InterviewPrepPage() {
     }
     setGenerating(true);
     try {
-      const response = await axios.post(`${API}/interview-prep/generate`, {
+      const response = await api.post(`/interview-prep/generate`, {
         role_id: selectedRole,
         categories: selectedCategories,
         count: 25,  // More questions for comprehensive practice
@@ -311,9 +309,9 @@ export default function InterviewPrepPage() {
       });
       setQuestions(response.data.questions || []);
       setExpandedQuestion(0);
-      
+
       const companyName = selectedCompany ? companies.find(c => c.id === selectedCompany)?.name : null;
-      const msg = companyName 
+      const msg = companyName
         ? `Generated ${response.data.questions?.length || 0} questions including ${companyName}-style questions!`
         : `Generated ${response.data.questions?.length || 0} interview questions!`;
       toast.success(msg);
@@ -326,22 +324,22 @@ export default function InterviewPrepPage() {
   };
 
   const getFeedback = async (question, answer) => {
-    const response = await axios.post(`${API}/interview-prep/feedback`, {
+    const response = await api.post(`/interview-prep/feedback`, {
       question: question.question,
       answer: answer,
       role_id: selectedRole,
       category: question.category
     });
-    
+
     // Save to history
     fetchPracticeHistory();
-    
+
     return response.data;
   };
 
   const toggleCategory = (catId) => {
-    setSelectedCategories(prev => 
-      prev.includes(catId) 
+    setSelectedCategories(prev =>
+      prev.includes(catId)
         ? prev.filter(c => c !== catId)
         : [...prev, catId]
     );
@@ -469,11 +467,10 @@ export default function InterviewPrepPage() {
                   <button
                     key={cat.id}
                     onClick={() => toggleCategory(cat.id)}
-                    className={`w-full p-3 rounded-lg border transition-all flex items-center gap-3 ${
-                      selectedCategories.includes(cat.id)
+                    className={`w-full p-3 rounded-lg border transition-all flex items-center gap-3 ${selectedCategories.includes(cat.id)
                         ? "bg-white/10 border-indigo-500/50"
                         : "bg-white/5 border-white/10 hover:border-white/20"
-                    }`}
+                      }`}
                     data-testid={`category-${cat.id}`}
                   >
                     <div className={`w-8 h-8 rounded-lg ${cat.color} flex items-center justify-center`}>

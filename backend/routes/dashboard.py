@@ -14,7 +14,7 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 @router.get("/career-progress")
 async def get_career_progress_dashboard(user: dict = Depends(get_current_user)):
     """Get comprehensive career transition dashboard data"""
-    from server import job_discovery
+    from services.job_discovery import job_discovery
     
     # 1. Get user's career analysis
     latest_analysis = await db.analyses.find_one(

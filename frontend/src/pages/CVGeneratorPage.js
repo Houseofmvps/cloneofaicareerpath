@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "../lib/api";
 import { saveAs } from "file-saver";
 import {
   FileText, Upload, Sparkles, Copy, Download, Loader2,
@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import AppNavigation from "../components/AppNavigation";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 // Generation Status Component
 const GenerationStatus = ({ stage, progress }) => {
@@ -40,18 +40,17 @@ const GenerationStatus = ({ stage, progress }) => {
         </h3>
         <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
       </div>
-      
+
       <Progress value={progress} className="h-2" />
-      
+
       <div className="grid grid-cols-5 gap-2 mt-4">
         {stages.map((s) => (
           <div
             key={s.id}
-            className={`text-center p-2 rounded-lg transition-all ${
-              s.id < stage ? "bg-emerald-500/20 text-emerald-300" :
-              s.id === stage ? "bg-indigo-500/30 text-indigo-300 animate-pulse" :
-              "bg-white/5 text-muted-foreground"
-            }`}
+            className={`text-center p-2 rounded-lg transition-all ${s.id < stage ? "bg-emerald-500/20 text-emerald-300" :
+                s.id === stage ? "bg-indigo-500/30 text-indigo-300 animate-pulse" :
+                  "bg-white/5 text-muted-foreground"
+              }`}
           >
             <div className="text-lg mb-1">{s.icon}</div>
             <div className="text-xs">{s.name}</div>
@@ -77,15 +76,15 @@ const cleanMarkdown = (text) => {
 
 // Country options for region selection
 const COUNTRIES = [
-  { id: "us", name: "🇺🇸 United States", tier: 1, pageLength: { entry: "1 page", mid: "1-2 pages", senior: "2 pages max" }},
-  { id: "canada", name: "🇨🇦 Canada", tier: 1, pageLength: { entry: "1 page", mid: "1-2 pages", senior: "2 pages max" }},
-  { id: "uk", name: "🇬🇧 United Kingdom", tier: 1, pageLength: { entry: "1-1.5 pages", mid: "1.5-2 pages", senior: "2-3 pages" }},
-  { id: "india", name: "🇮🇳 India", tier: 1, pageLength: { entry: "2-3 pages", mid: "2-3 pages", senior: "3-4 pages" }},
-  { id: "germany", name: "🇩🇪 Germany", tier: 1, pageLength: { entry: "1-2 pages", mid: "1.5-2.5 pages", senior: "2-3 pages" }},
-  { id: "australia", name: "🇦🇺 Australia", tier: 1, pageLength: { entry: "1-2 pages", mid: "2-3 pages", senior: "3-4 pages" }},
-  { id: "singapore", name: "🇸🇬 Singapore", tier: 1, pageLength: { entry: "1-2 pages", mid: "1.5-2 pages", senior: "2-3 pages" }},
-  { id: "uae", name: "🇦🇪 UAE", tier: 2, pageLength: { entry: "2-3 pages", mid: "2-3 pages", senior: "3-4 pages" }},
-  { id: "global", name: "🌍 Other (Global Standard)", tier: 3, pageLength: { entry: "1-2 pages", mid: "1.5-2.5 pages", senior: "2-3 pages" }},
+  { id: "us", name: "🇺🇸 United States", tier: 1, pageLength: { entry: "1 page", mid: "1-2 pages", senior: "2 pages max" } },
+  { id: "canada", name: "🇨🇦 Canada", tier: 1, pageLength: { entry: "1 page", mid: "1-2 pages", senior: "2 pages max" } },
+  { id: "uk", name: "🇬🇧 United Kingdom", tier: 1, pageLength: { entry: "1-1.5 pages", mid: "1.5-2 pages", senior: "2-3 pages" } },
+  { id: "india", name: "🇮🇳 India", tier: 1, pageLength: { entry: "2-3 pages", mid: "2-3 pages", senior: "3-4 pages" } },
+  { id: "germany", name: "🇩🇪 Germany", tier: 1, pageLength: { entry: "1-2 pages", mid: "1.5-2.5 pages", senior: "2-3 pages" } },
+  { id: "australia", name: "🇦🇺 Australia", tier: 1, pageLength: { entry: "1-2 pages", mid: "2-3 pages", senior: "3-4 pages" } },
+  { id: "singapore", name: "🇸🇬 Singapore", tier: 1, pageLength: { entry: "1-2 pages", mid: "1.5-2 pages", senior: "2-3 pages" } },
+  { id: "uae", name: "🇦🇪 UAE", tier: 2, pageLength: { entry: "2-3 pages", mid: "2-3 pages", senior: "3-4 pages" } },
+  { id: "global", name: "🌍 Other (Global Standard)", tier: 3, pageLength: { entry: "1-2 pages", mid: "1.5-2.5 pages", senior: "2-3 pages" } },
 ];
 
 const EXPERIENCE_LEVELS = [
@@ -108,19 +107,19 @@ export default function CVGeneratorPage() {
   const [generatedCV, setGeneratedCV] = useState(null);
   const [usage, setUsage] = useState({ used: 0, limit: 2, credits: 0 });
   const [cvHistory, setCvHistory] = useState([]);
-  
+
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadFileName, setUploadFileName] = useState("");
-  
+
   const [targetRegion, setTargetRegion] = useState("");
   const [experienceLevel, setExperienceLevel] = useState("");
-  
+
   const [editMode, setEditMode] = useState(false);
   const [editedContent, setEditedContent] = useState("");
-  
+
   const getSelectedCountry = () => COUNTRIES.find(c => c.id === targetRegion);
-  
+
   const getRecommendedLength = () => {
     if (!targetRegion || !experienceLevel) return null;
     const country = COUNTRIES.find(c => c.id === targetRegion);
@@ -129,7 +128,7 @@ export default function CVGeneratorPage() {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get(`${API}/roles`);
+      const response = await api.get(`/roles`);
       setRoles(response.data.roles || []);
     } catch (error) {
       console.error("Failed to fetch roles:", error);
@@ -138,7 +137,7 @@ export default function CVGeneratorPage() {
 
   const fetchUsage = async () => {
     try {
-      const response = await axios.get(`${API}/usage`);
+      const response = await api.get(`/usage`);
       setUsage({
         used: response.data.cv_generations_used,
         limit: response.data.cv_generations_limit,
@@ -151,7 +150,7 @@ export default function CVGeneratorPage() {
 
   const fetchHistory = async () => {
     try {
-      const response = await axios.get(`${API}/cv/history`);
+      const response = await api.get(`/cv/history`);
       setCvHistory(response.data.cv_generations || []);
     } catch (error) {
       console.error("Failed to fetch CV history:", error);
@@ -167,32 +166,32 @@ export default function CVGeneratorPage() {
 
   const handleFileUpload = async (file) => {
     if (!file) return;
-    
+
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error("File too large. Maximum size is 10MB.");
       return;
     }
-    
+
     setUploading(true);
     setUploadProgress(0);
     setUploadFileName(file.name);
-    
+
     const formData = new FormData();
     formData.append("file", file);
-    
+
     try {
-      const response = await axios.post(`${API}/resume/parse`, formData, {
+      const response = await api.post(`/resume/parse`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setUploadProgress(percentCompleted);
         }
       });
-      
+
       setUploadProgress(100);
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       setResumeText(response.data.resume_data.raw_text);
       if (response.data.resume_data.current_role) {
         setCurrentRole(response.data.resume_data.current_role);
@@ -200,7 +199,7 @@ export default function CVGeneratorPage() {
       if (response.data.resume_data.skills?.length) {
         setSkills(response.data.resume_data.skills.join(", "));
       }
-      
+
       setUploading(false);
       setUploadProgress(0);
       toast.success(`"${file.name}" parsed successfully!`);
@@ -216,7 +215,7 @@ export default function CVGeneratorPage() {
       toast.error("Please enter resume text and select a target role");
       return;
     }
-    
+
     if (!targetRegion || !experienceLevel) {
       toast.error("Please select region and experience level");
       return;
@@ -225,7 +224,7 @@ export default function CVGeneratorPage() {
     setLoading(true);
     setGenerationStage(1);
     setGenerationProgress(10);
-    
+
     const progressInterval = setInterval(() => {
       setGenerationProgress(prev => {
         if (prev >= 90) return prev;
@@ -241,15 +240,15 @@ export default function CVGeneratorPage() {
     try {
       const expLevel = EXPERIENCE_LEVELS.find(e => e.id === experienceLevel);
       const countryData = getSelectedCountry();
-      
+
       // Calculate experience_years as integer from range
       let expYears = 3;
       if (expLevel?.years) {
         const range = expLevel.years.split("-");
         expYears = parseInt(range[0]) || 3;
       }
-      
-      const response = await axios.post(`${API}/cv/generate`, {
+
+      const response = await api.post(`/cv/generate`, {
         resume_text: resumeText,
         target_role_id: selectedRole,
         current_role: currentRole,
@@ -267,24 +266,24 @@ export default function CVGeneratorPage() {
       clearInterval(progressInterval);
       setGenerationProgress(100);
       setGenerationStage(5);
-      
+
       setTimeout(() => {
         setGeneratedCV(response.data);
         setUsage(response.data.usage);
-        
+
         // Set editable content from the hybrid resume
         const hybridVersion = response.data.versions?.[0];
         if (hybridVersion?.content) {
           setEditedContent(hybridVersion.content);
         }
-        
+
         toast.success("Superior Hybrid Resume generated!");
         fetchHistory();
         setLoading(false);
         setGenerationStage(0);
         setGenerationProgress(0);
       }, 500);
-      
+
     } catch (error) {
       clearInterval(progressInterval);
       const detail = error.response?.data?.detail;
@@ -303,7 +302,7 @@ export default function CVGeneratorPage() {
 
   const downloadResume = async (format) => {
     const content = editMode ? editedContent : (generatedCV?.versions?.[0]?.content || "");
-    
+
     if (format === "txt") {
       const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
       const userName = user?.name || "User";
@@ -315,32 +314,32 @@ export default function CVGeneratorPage() {
 
     try {
       toast.loading(`Generating ${format.toUpperCase()}...`, { id: 'download' });
-      
+
       const userName = user?.name || "User";
       const cleanName = userName.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_');
       const cleanRole = (selectedRole || "AI_Role").replace(/[^\w\s-]/g, '').replace(/\s+/g, '_');
       const downloadFilename = `${cleanName}_${cleanRole}_Resume.${format}`;
-      
-      const response = await axios.post(
-        `${API}/cv/download-direct?cv_version=hybrid&format=${format}&target_role=${encodeURIComponent(selectedRole || "AI Role")}`,
+
+      const response = await api.post(
+        `/cv/download-direct?cv_version=hybrid&format=${format}&target_role=${encodeURIComponent(selectedRole || "AI Role")}`,
         {
           cv_content: content,
           user_name: userName
         },
         { responseType: 'blob' }
       );
-      
-      const mimeType = format === "pdf" 
-        ? "application/pdf" 
+
+      const mimeType = format === "pdf"
+        ? "application/pdf"
         : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-      
+
       const blob = new Blob([response.data], { type: mimeType });
       saveAs(blob, downloadFilename);
-      
+
       toast.dismiss('download');
       toast.success(`Resume downloaded as ${format.toUpperCase()}!`);
       fetchUsage();
-      
+
     } catch (error) {
       toast.dismiss('download');
       toast.error(`Failed to generate ${format.toUpperCase()}`);
@@ -375,7 +374,7 @@ export default function CVGeneratorPage() {
                 Build your ATS-optimized, human-appealing hybrid resume
               </p>
             </div>
-            
+
             <div className="glass rounded-xl px-6 py-4 text-center">
               <div className="text-sm text-muted-foreground mb-1">FREE this month</div>
               <div className="text-2xl font-bold">
@@ -402,7 +401,7 @@ export default function CVGeneratorPage() {
             {/* Resume Input */}
             <div className="glass rounded-2xl p-6">
               <Label className="text-lg font-semibold mb-4 block">Your Resume</Label>
-              
+
               <div className="mb-4">
                 <input
                   type="file"
@@ -413,7 +412,7 @@ export default function CVGeneratorPage() {
                   disabled={uploading}
                   data-testid="cv-file-input"
                 />
-                
+
                 {uploading ? (
                   <div className="p-4 border-2 border-indigo-500/50 rounded-xl bg-indigo-500/10">
                     <div className="flex items-center gap-3 mb-3">
@@ -439,7 +438,7 @@ export default function CVGeneratorPage() {
                   </label>
                 )}
               </div>
-              
+
               <Textarea
                 placeholder="Paste your resume text here..."
                 className="min-h-[200px] input-dark"
@@ -452,7 +451,7 @@ export default function CVGeneratorPage() {
             {/* Additional Info */}
             <div className="glass rounded-2xl p-6 space-y-4">
               <Label className="text-lg font-semibold block">Additional Details</Label>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="current-role" className="text-sm">Current Role</Label>
@@ -476,7 +475,7 @@ export default function CVGeneratorPage() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="skills" className="text-sm">Key Skills (comma separated)</Label>
                 <Input
@@ -495,7 +494,7 @@ export default function CVGeneratorPage() {
                 <Target className="w-5 h-5 inline mr-2 text-indigo-400" />
                 Target AI Role
               </Label>
-              
+
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
@@ -510,7 +509,7 @@ export default function CVGeneratorPage() {
                 ))}
               </select>
             </div>
-            
+
             {/* Region & Experience */}
             <div className="glass rounded-2xl p-6 space-y-4">
               <div>
@@ -526,7 +525,7 @@ export default function CVGeneratorPage() {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <Label className="text-lg font-semibold mb-2 block">📊 Experience Level</Label>
                 <select
@@ -540,7 +539,7 @@ export default function CVGeneratorPage() {
                   ))}
                 </select>
               </div>
-              
+
               {targetRegion && experienceLevel && (
                 <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/30">
                   <div className="flex items-center gap-2 text-indigo-300 text-sm">
@@ -594,7 +593,7 @@ export default function CVGeneratorPage() {
             {loading && (
               <GenerationStatus stage={generationStage} progress={generationProgress} />
             )}
-            
+
             {!loading && generatedCV ? (
               <>
                 {/* Scores */}
@@ -685,7 +684,7 @@ export default function CVGeneratorPage() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   {editMode ? (
                     <div className="space-y-3">
                       <div className="text-xs text-emerald-400 mb-2 flex items-center gap-2">

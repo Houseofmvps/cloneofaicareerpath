@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
-import { 
+import api from "../lib/api";
+import {
   Brain, FileText, Target, Clock, ChevronRight, Zap, BarChart3, BookOpen,
   Briefcase, TrendingUp, CheckCircle2, Circle, ArrowRight, Sparkles,
   DollarSign, Calendar, ExternalLink, Send, GraduationCap, FileCheck,
@@ -14,17 +14,16 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import AppNavigation from "../components/AppNavigation";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 // Stage indicator component
 const StageIndicator = ({ stage, isActive, isCompleted }) => {
   return (
     <div className="flex flex-col items-center">
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-        isCompleted ? "bg-emerald-500 text-white" :
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isCompleted ? "bg-emerald-500 text-white" :
         isActive ? "bg-indigo-500 text-white animate-pulse" :
-        "bg-white/10 text-muted-foreground"
-      }`}>
+          "bg-white/10 text-muted-foreground"
+        }`}>
         {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
       </div>
       <span className={`text-xs mt-1 ${isCompleted ? "text-emerald-400" : isActive ? "text-indigo-400" : "text-muted-foreground"}`}>
@@ -77,7 +76,7 @@ const ActionCard = ({ action, index }) => {
     interview: Users
   };
   const Icon = icons[action.type] || Zap;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -86,9 +85,8 @@ const ActionCard = ({ action, index }) => {
       className="flex items-start gap-4 p-4 glass rounded-xl hover:bg-white/5 transition-all cursor-pointer"
       onClick={() => navigate(action.link)}
     >
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-        action.priority === 1 ? "bg-indigo-500/20 text-indigo-400" : "bg-white/10 text-muted-foreground"
-      }`}>
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${action.priority === 1 ? "bg-indigo-500/20 text-indigo-400" : "bg-white/10 text-muted-foreground"
+        }`}>
         <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1">
@@ -112,7 +110,7 @@ const HotJobCard = ({ job }) => {
   const handleApply = () => {
     window.open(job.job_url, "_blank");
   };
-  
+
   return (
     <div className="p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
       <div className="flex items-start justify-between">
@@ -147,9 +145,7 @@ export default function DashboardPage() {
 
   const fetchDashboard = async () => {
     try {
-      const response = await axios.get(`${API}/dashboard/career-progress`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      });
+      const response = await api.get("/dashboard/career-progress");
       setDashboard(response.data);
     } catch (error) {
       console.error("Failed to fetch dashboard:", error);
@@ -175,7 +171,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppNavigation />
-      
+
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <motion.div
@@ -210,19 +206,19 @@ export default function DashboardPage() {
               <div className="text-xs text-muted-foreground">overall progress</div>
             </div>
           </div>
-          
+
           <Progress value={progress?.overall_percentage || 0} className="h-4 mb-6" />
-          
+
           {/* Stage Indicators */}
           <div className="flex justify-between items-center relative">
             {/* Connecting line */}
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-white/10" />
-            
+
             {progress?.stages && Object.entries(progress.stages).map(([key, stage], index) => {
               const allStages = Object.values(progress.stages);
               const currentStageIndex = allStages.findIndex(s => !s.done);
               const isActive = index === currentStageIndex;
-              
+
               return (
                 <StageIndicator
                   key={key}
@@ -246,7 +242,7 @@ export default function DashboardPage() {
             link="/analyze"
             linkText="View Analysis"
           />
-          
+
           <MetricCard
             icon={BookOpen}
             title="Learning Progress"
@@ -256,7 +252,7 @@ export default function DashboardPage() {
             link="/learning-path"
             linkText="Continue Learning"
           />
-          
+
           <MetricCard
             icon={Briefcase}
             title="Applications"
@@ -283,7 +279,7 @@ export default function DashboardPage() {
                 <Sparkles className="w-5 h-5 text-amber-400" />
                 Today's AI-Recommended Actions
               </h3>
-              
+
               <div className="space-y-3">
                 {daily_actions?.length > 0 ? (
                   daily_actions.map((action, index) => (
@@ -309,7 +305,7 @@ export default function DashboardPage() {
                 <BarChart3 className="w-5 h-5 text-indigo-400" />
                 Application Funnel
               </h3>
-              
+
               <div className="flex items-end justify-between gap-4 h-32 mb-4">
                 {[
                   { label: "Applied", value: applications?.funnel?.applied || 0, color: "bg-blue-500" },
@@ -319,7 +315,7 @@ export default function DashboardPage() {
                 ].map((stage, index) => {
                   const maxVal = Math.max(applications?.funnel?.applied || 1, 1);
                   const height = Math.max((stage.value / maxVal) * 100, 5);
-                  
+
                   return (
                     <div key={stage.label} className="flex-1 flex flex-col items-center">
                       <div className="w-full flex flex-col items-center justify-end h-24">
@@ -336,7 +332,7 @@ export default function DashboardPage() {
                   );
                 })}
               </div>
-              
+
               {applications?.total_applied > 0 && (
                 <div className="p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-sm">
                   <span className="text-indigo-300">
@@ -362,7 +358,7 @@ export default function DashboardPage() {
                   <GraduationCap className="w-5 h-5 text-purple-400" />
                   Priority Skills to Learn
                 </h3>
-                
+
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {career_fit.skills_to_learn.map((skill, index) => (
                     <div
@@ -373,7 +369,7 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-                
+
                 <Button
                   className="w-full mt-4"
                   variant="outline"
@@ -398,18 +394,18 @@ export default function DashboardPage() {
                 <TrendingUp className="w-5 h-5 text-emerald-400" />
                 Your Market Value
               </h3>
-              
+
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Current (estimated)</span>
                   <span className="font-bold">${(market_value?.current_estimate || 0).toLocaleString()}</span>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Target (AI role)</span>
                   <span className="font-bold text-emerald-400">${(market_value?.target_salary || 0).toLocaleString()}</span>
                 </div>
-                
+
                 <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-center">
                   <div className="text-2xl font-bold text-emerald-400">
                     +{market_value?.increase_percentage || 0}%
@@ -435,7 +431,7 @@ export default function DashboardPage() {
                 <Zap className="w-5 h-5 text-amber-400" />
                 Hot Jobs For You
               </h3>
-              
+
               <div className="space-y-3">
                 {hot_jobs?.length > 0 ? (
                   hot_jobs.map((job, index) => (
@@ -448,7 +444,7 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
-              
+
               <Button
                 className="w-full mt-4 btn-primary"
                 onClick={() => navigate("/auto-apply")}
@@ -465,7 +461,7 @@ export default function DashboardPage() {
               className="glass rounded-2xl p-6"
             >
               <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="outline"
@@ -475,7 +471,7 @@ export default function DashboardPage() {
                   <FileText className="w-5 h-5 mb-1" />
                   <span className="text-xs">Resume</span>
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   className="h-auto py-3 flex-col"
@@ -484,7 +480,7 @@ export default function DashboardPage() {
                   <FileCheck className="w-5 h-5 mb-1" />
                   <span className="text-xs">Cover Letter</span>
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   className="h-auto py-3 flex-col"
@@ -493,7 +489,7 @@ export default function DashboardPage() {
                   <Brain className="w-5 h-5 mb-1" />
                   <span className="text-xs">Analysis</span>
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   className="h-auto py-3 flex-col"

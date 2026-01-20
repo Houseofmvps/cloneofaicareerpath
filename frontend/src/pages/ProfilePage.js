@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "../lib/api";
 import {
   User, Crown, Zap, FileText, BookOpen, BarChart3,
   CreditCard, Settings, ChevronRight, Check
@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import AppNavigation from "../components/AppNavigation";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -26,8 +26,8 @@ export default function ProfilePage() {
   const fetchData = async () => {
     try {
       const [usageRes, subRes] = await Promise.all([
-        axios.get(`${API}/usage`),
-        axios.get(`${API}/payments/subscription`)
+        api.get(`/usage`),
+        api.get(`/payments/subscription`)
       ]);
       setUsage(usageRes.data);
       setSubscription(subRes.data);
@@ -40,7 +40,7 @@ export default function ProfilePage() {
 
   const handleMockUpgrade = async () => {
     try {
-      await axios.post(`${API}/payments/mock-upgrade`);
+      await api.post(`/payments/mock-upgrade`);
       toast.success("Upgraded to Pro! (Mock)");
       await refreshUser();
       fetchData();
@@ -51,7 +51,7 @@ export default function ProfilePage() {
 
   const handleMockPurchase = async (productType) => {
     try {
-      await axios.post(`${API}/payments/mock-purchase?product_type=${productType}`);
+      await api.post(`/payments/mock-purchase?product_type=${productType}`);
       toast.success(`Purchased ${productType}! (Mock)`);
       fetchData();
     } catch (error) {
@@ -125,9 +125,9 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            <Progress 
-              value={isPro ? 0 : ((usage?.analyses_used || 0) / (usage?.analyses_limit || 1)) * 100} 
-              className="h-2" 
+            <Progress
+              value={isPro ? 0 : ((usage?.analyses_used || 0) / (usage?.analyses_limit || 1)) * 100}
+              className="h-2"
             />
             <div className="text-xs text-muted-foreground mt-2">
               {isPro ? "Unlimited" : `${(usage?.analyses_limit || 1) - (usage?.analyses_used || 0)} remaining this month`}
@@ -147,9 +147,9 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            <Progress 
-              value={isPro ? 0 : ((usage?.cv_generations_used || 0) / (usage?.cv_generations_limit || 2)) * 100} 
-              className="h-2" 
+            <Progress
+              value={isPro ? 0 : ((usage?.cv_generations_used || 0) / (usage?.cv_generations_limit || 2)) * 100}
+              className="h-2"
             />
             <div className="text-xs text-muted-foreground mt-2">
               {subscription?.cv_credits > 0 && (
@@ -171,9 +171,9 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            <Progress 
-              value={isPro ? 0 : ((usage?.learning_paths_used || 0) / (usage?.learning_paths_limit || 1)) * 100} 
-              className="h-2" 
+            <Progress
+              value={isPro ? 0 : ((usage?.learning_paths_used || 0) / (usage?.learning_paths_limit || 1)) * 100}
+              className="h-2"
             />
             <div className="text-xs text-muted-foreground mt-2">
               {subscription?.learning_path_credits > 0 && (
@@ -191,7 +191,7 @@ export default function ProfilePage() {
           className="mb-8"
         >
           <h2 className="text-xl font-bold mb-4">Subscription</h2>
-          
+
           {isPro ? (
             <div className="glass rounded-xl p-6 border-2 border-amber-500/30">
               <div className="flex items-center justify-between">
@@ -237,7 +237,7 @@ export default function ProfilePage() {
                     </li>
                   ))}
                 </ul>
-                <Button 
+                <Button
                   className="w-full btn-primary"
                   onClick={handleMockUpgrade}
                   data-testid="profile-upgrade-btn"
@@ -256,8 +256,8 @@ export default function ProfilePage() {
                       <div className="font-medium">1 Resume Generation</div>
                       <div className="text-sm text-muted-foreground">$0.49</div>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="btn-secondary"
                       onClick={() => handleMockPurchase("cv_single")}
                     >
@@ -269,8 +269,8 @@ export default function ProfilePage() {
                       <div className="font-medium">50 Resumes + 3 Paths + 3 Analyses</div>
                       <div className="text-sm text-muted-foreground">$13.99 (best value)</div>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="btn-primary"
                       onClick={() => handleMockPurchase("cv_bulk_50")}
                     >

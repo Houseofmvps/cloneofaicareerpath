@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "../lib/api";
 import {
   BookOpen, Target, Sparkles, Loader2, ExternalLink, Clock,
   ChevronDown, ChevronUp, CheckCircle2, AlertCircle, Download,
@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import AppNavigation from "../components/AppNavigation";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// API base URL configured in lib/api.js
 
 const LOCATIONS = [
   { id: "us", name: "US", flag: "🇺🇸" },
@@ -48,25 +48,24 @@ const GenerationStatus = ({ stage, progress }) => {
         </h3>
         <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
       </div>
-      
+
       <Progress value={progress} className="h-2" />
-      
+
       <div className="grid grid-cols-5 gap-2 mt-4">
         {stages.map((s) => (
           <div
             key={s.id}
-            className={`text-center p-2 rounded-lg transition-all ${
-              s.id < stage ? "bg-indigo-500/20 text-indigo-300" :
-              s.id === stage ? "bg-purple-500/30 text-purple-300 animate-pulse" :
-              "bg-white/5 text-muted-foreground"
-            }`}
+            className={`text-center p-2 rounded-lg transition-all ${s.id < stage ? "bg-indigo-500/20 text-indigo-300" :
+                s.id === stage ? "bg-purple-500/30 text-purple-300 animate-pulse" :
+                  "bg-white/5 text-muted-foreground"
+              }`}
           >
             <div className="text-lg mb-1">{s.icon}</div>
             <div className="text-xs">{s.name}</div>
           </div>
         ))}
       </div>
-      
+
       <p className="text-center text-sm text-muted-foreground mt-2">
         This usually takes 20-40 seconds. Curating personalized courses from 28+ sources...
       </p>
@@ -77,7 +76,7 @@ const GenerationStatus = ({ stage, progress }) => {
 // Fast Track Banner Component
 const FastTrackBanner = ({ fastTrack, isCollapsed, onToggle }) => {
   if (!fastTrack?.enabled) return null;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -87,7 +86,7 @@ const FastTrackBanner = ({ fastTrack, isCollapsed, onToggle }) => {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 border border-amber-500/30">
         {/* Animated glow effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 animate-pulse" />
-        
+
         <div className="relative p-5">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -104,16 +103,16 @@ const FastTrackBanner = ({ fastTrack, isCollapsed, onToggle }) => {
                 <p className="text-sm text-muted-foreground">{fastTrack.description}</p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onToggle}
               className="text-amber-400 hover:text-amber-300"
             >
               {isCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
             </Button>
           </div>
-          
+
           <AnimatePresence>
             {!isCollapsed && (
               <motion.div
@@ -151,7 +150,7 @@ const FastTrackBanner = ({ fastTrack, isCollapsed, onToggle }) => {
                     </a>
                   ))}
                 </div>
-                
+
                 <div className="mt-4 flex flex-wrap gap-2">
                   {fastTrack.benefits?.map((benefit, idx) => (
                     <span key={idx} className="text-xs px-2 py-1 rounded-full bg-white/5 text-muted-foreground">
@@ -184,7 +183,7 @@ export default function LearningPathPage() {
   const [expandedWeeks, setExpandedWeeks] = useState([1]);
   const [pathHistory, setPathHistory] = useState([]);
   const [fastTrackCollapsed, setFastTrackCollapsed] = useState(false);
-  
+
   // Interactive learning path state
   const [courseProgress, setCourseProgress] = useState({});
   const [weekProgress, setWeekProgress] = useState({});
@@ -208,7 +207,7 @@ export default function LearningPathPage() {
 
   const fetchCourseProgress = async (pathId) => {
     try {
-      const response = await axios.get(`${API}/learning-path/${pathId}/course-progress`);
+      const response = await api.get(`/learning-path/${pathId}/course-progress`);
       setCourseProgress(response.data.course_progress || {});
       setWeekProgress(response.data.week_progress || {});
       setOverallStats({
@@ -224,7 +223,7 @@ export default function LearningPathPage() {
 
   const fetchSavedCourses = async () => {
     try {
-      const response = await axios.get(`${API}/user/saved-courses`);
+      const response = await api.get(`/user/saved-courses`);
       setSavedCourses(response.data.saved_courses || []);
     } catch (error) {
       console.error("Failed to fetch saved courses:", error);
@@ -242,7 +241,7 @@ export default function LearningPathPage() {
     const isCurrentlyCompleted = courseProgress[weekKey]?.[courseKey]?.completed || false;
 
     try {
-      const response = await axios.post(`${API}/learning-path/${generatedPath.id}/course-progress`, {
+      const response = await api.post(`/learning-path/${generatedPath.id}/course-progress`, {
         week: weekNum,
         course_index: courseIndex,
         completed: !isCurrentlyCompleted
@@ -292,7 +291,7 @@ export default function LearningPathPage() {
 
     setSavingCourse(courseUrl);
     try {
-      await axios.post(`${API}/user/saved-courses`, {
+      await api.post(`/user/saved-courses`, {
         course_name: course.name,
         course_url: courseUrl,
         platform: course.platform,
@@ -319,7 +318,7 @@ export default function LearningPathPage() {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get(`${API}/roles?location=${location}`);
+      const response = await api.get(`/roles?location=${location}`);
       setRoles(response.data.roles || []);
     } catch (error) {
       console.error("Failed to fetch roles:", error);
@@ -328,7 +327,7 @@ export default function LearningPathPage() {
 
   const fetchUsage = async () => {
     try {
-      const response = await axios.get(`${API}/usage`);
+      const response = await api.get(`/usage`);
       setUsage({
         used: response.data.learning_paths_used,
         limit: response.data.learning_paths_limit,
@@ -341,7 +340,7 @@ export default function LearningPathPage() {
 
   const fetchHistory = async () => {
     try {
-      const response = await axios.get(`${API}/learning-path/history`);
+      const response = await api.get(`/learning-path/history`);
       setPathHistory(response.data.learning_paths || []);
     } catch (error) {
       console.error("Failed to fetch history:", error);
@@ -361,25 +360,25 @@ export default function LearningPathPage() {
     setLoading(true);
     setGenerationStage(1);
     setGenerationProgress(10);
-    
+
     // Simulate progress stages
     const progressInterval = setInterval(() => {
       setGenerationProgress(prev => {
         if (prev >= 90) return prev;
         const newProgress = prev + Math.random() * 12;
-        
+
         // Update stage based on progress
         if (newProgress > 20 && newProgress <= 40) setGenerationStage(2);
         else if (newProgress > 40 && newProgress <= 60) setGenerationStage(3);
         else if (newProgress > 60 && newProgress <= 80) setGenerationStage(4);
         else if (newProgress > 80) setGenerationStage(5);
-        
+
         return Math.min(newProgress, 90);
       });
     }, 1000);
 
     try {
-      const response = await axios.post(`${API}/learning-path/generate`, {
+      const response = await api.post(`/learning-path/generate`, {
         current_role: currentRole,
         years_experience: parseInt(yearsExp) || 0,
         current_skills: skills.split(",").map(s => s.trim()).filter(Boolean),
@@ -390,7 +389,7 @@ export default function LearningPathPage() {
       clearInterval(progressInterval);
       setGenerationProgress(100);
       setGenerationStage(5);
-      
+
       setTimeout(() => {
         setGeneratedPath(response.data);
         setUsage(response.data.usage);
@@ -401,12 +400,12 @@ export default function LearningPathPage() {
         setGenerationStage(0);
         setGenerationProgress(0);
       }, 500);
-      
+
     } catch (error) {
       clearInterval(progressInterval);
       const detail = error.response?.data?.detail;
       let errorMessage = "Failed to generate learning path";
-      
+
       if (typeof detail === "string") {
         errorMessage = detail;
       } else if (Array.isArray(detail) && detail.length > 0) {
@@ -415,7 +414,7 @@ export default function LearningPathPage() {
       } else if (typeof detail === "object" && detail?.message) {
         errorMessage = detail.message;
       }
-      
+
       toast.error(errorMessage);
       setLoading(false);
       setGenerationStage(0);
@@ -440,7 +439,7 @@ export default function LearningPathPage() {
 
   const downloadPath = async (format = "txt") => {
     if (!generatedPath) return;
-    
+
     // Check if user can download PDF/DOCX (Pro or has credits)
     if (format !== "txt" && !isPro) {
       toast.error(
@@ -452,36 +451,36 @@ export default function LearningPathPage() {
       );
       return;
     }
-    
+
     // Text download (instant, free for all)
     if (format === "txt") {
       let text = `16-WEEK LEARNING PATH\n`;
       text += `From: ${generatedPath.current_role} → To: ${generatedPath.target_role}\n`;
       text += `Estimated Salary: ${generatedPath.location_salary}\n\n`;
-      
+
       generatedPath.learning_path?.weeks?.forEach(week => {
         text += `\n=== WEEK ${week.week}: ${week.focus} ===\n`;
         text += `Hours: ${week.hours}\n`;
         text += `Phase: ${week.phase || ''}\n\n`;
-        
+
         if (week.courses?.length) {
           text += `Courses:\n`;
           week.courses.forEach(c => {
             text += `• ${c.name} (${c.platform}) - ${c.url}\n`;
           });
         }
-        
+
         if (week.milestones?.length) {
           text += `\nMilestones:\n`;
           week.milestones.forEach(m => text += `• ${m}\n`);
         }
-        
+
         if (week.projects?.length) {
           text += `\nProjects:\n`;
           week.projects.forEach(p => text += `• ${p}\n`);
         }
       });
-      
+
       const blob = new Blob([text], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -496,13 +495,13 @@ export default function LearningPathPage() {
       toast.success("Learning path downloaded as TXT!");
       return;
     }
-    
+
     // PDF/DOCX download via API
     try {
       toast.loading(`Generating ${format.toUpperCase()}...`, { id: 'download' });
-      
-      const response = await axios.post(
-        `${API}/learning-path/download-direct?format=${format}`,
+
+      const response = await api.post(
+        `/learning-path/download-direct?format=${format}`,
         {
           path_data: generatedPath.learning_path,
           target_role: generatedPath.target_role,
@@ -510,10 +509,10 @@ export default function LearningPathPage() {
         },
         { responseType: 'blob' }
       );
-      
-      const blob = new Blob([response.data], { 
-        type: format === "pdf" 
-          ? "application/pdf" 
+
+      const blob = new Blob([response.data], {
+        type: format === "pdf"
+          ? "application/pdf"
           : "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       });
       const url = URL.createObjectURL(blob);
@@ -526,7 +525,7 @@ export default function LearningPathPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       toast.dismiss('download');
       toast.success(`Learning path downloaded as ${format.toUpperCase()}!`);
     } catch (error) {
@@ -541,18 +540,18 @@ export default function LearningPathPage() {
       toast.error("Save your learning path first");
       return;
     }
-    
+
     try {
-      const response = await axios.post(`${API}/learning-path/${generatedPath.id}/progress`, {
+      const response = await api.post(`/learning-path/${generatedPath.id}/progress`, {
         week: weekNum,
         completed: !weekProgress[weekNum]?.completed
       });
-      
+
       setWeekProgress(prev => ({
         ...prev,
         [weekNum]: { completed: !prev[weekNum]?.completed }
       }));
-      
+
       toast.success(response.data.message);
     } catch (error) {
       toast.error("Failed to update progress");
@@ -565,31 +564,30 @@ export default function LearningPathPage() {
 
   const handleResumeUpload = async (file) => {
     if (!file) return;
-    
+
     setUploading(true);
     setUploadProgress(0);
-    
+
     const formData = new FormData();
     formData.append("file", file);
-    
+
     try {
-      const response = await axios.post(`${API}/resume/parse`, formData, {
+      const response = await api.post(`/resume/parse`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          "Content-Type": "multipart/form-data"
         },
         onUploadProgress: (progressEvent) => {
           const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setUploadProgress(progress);
         }
       });
-      
+
       if (response.data) {
         // Extract skills from parsed resume
         const extractedSkills = response.data.extracted_skills || [];
         const extractedRole = response.data.current_role || "";
         const extractedYears = response.data.years_experience || "";
-        
+
         // Update form fields
         if (extractedSkills.length > 0) {
           setSkills(extractedSkills.join(", "));
@@ -600,7 +598,7 @@ export default function LearningPathPage() {
         if (extractedYears) {
           setYearsExp(String(extractedYears));
         }
-        
+
         toast.success("Resume parsed! Skills and experience extracted.");
       }
     } catch (error) {
@@ -613,7 +611,7 @@ export default function LearningPathPage() {
 
   const trackCourseClick = async (course) => {
     try {
-      await axios.post(`${API}/analytics/course-click`, {
+      await api.post(`/analytics/course-click`, {
         course_id: course.course_id || course.name?.toLowerCase().replace(/\s+/g, '_'),
         course_name: course.name,
         course_url: course.url,
@@ -650,7 +648,7 @@ export default function LearningPathPage() {
                 Generate a personalized 16-week roadmap with real courses and clickable links
               </p>
             </div>
-            
+
             {/* Usage Counter */}
             <div className="glass rounded-xl px-6 py-4 text-center">
               <div className="text-sm text-muted-foreground mb-1">FREE this month</div>
@@ -683,7 +681,7 @@ export default function LearningPathPage() {
             {/* Current State */}
             <div className="glass rounded-2xl p-6 space-y-4">
               <Label className="text-lg font-semibold block">Your Current State</Label>
-              
+
               {/* Resume Upload for Auto-Fill */}
               <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
                 <input
@@ -695,7 +693,7 @@ export default function LearningPathPage() {
                   disabled={uploading}
                   data-testid="lp-resume-upload"
                 />
-                
+
                 {uploading ? (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -717,7 +715,7 @@ export default function LearningPathPage() {
                   </label>
                 )}
               </div>
-              
+
               <div>
                 <Label htmlFor="lp-current-role" className="text-sm">Current Role *</Label>
                 <div className="relative mt-1">
@@ -732,7 +730,7 @@ export default function LearningPathPage() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="lp-years" className="text-sm">Years Experience</Label>
                 <div className="relative mt-1">
@@ -748,7 +746,7 @@ export default function LearningPathPage() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="lp-skills" className="text-sm">Current Skills (comma separated)</Label>
                 <div className="relative mt-1">
@@ -796,7 +794,7 @@ export default function LearningPathPage() {
                 <Target className="w-5 h-5 inline mr-2 text-purple-400" />
                 Target AI Role
               </Label>
-              
+
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
@@ -899,7 +897,7 @@ export default function LearningPathPage() {
             {loading && (
               <GenerationStatus stage={generationStage} progress={generationProgress} />
             )}
-            
+
             {!loading && generatedPath ? (
               <>
                 {/* Summary with Progress Stats */}
@@ -916,10 +914,10 @@ export default function LearningPathPage() {
                     <div className="flex gap-1">
                       <Button size="sm" variant="ghost" onClick={expandAll}>Expand All</Button>
                       <Button size="sm" variant="ghost" onClick={collapseAll}>Collapse</Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => downloadPath("pdf")} 
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => downloadPath("pdf")}
                         className="text-red-400 hover:text-red-300"
                         title="Download PDF"
                         data-testid="lp-download-pdf"
@@ -927,10 +925,10 @@ export default function LearningPathPage() {
                         <Download className="w-4 h-4 mr-1" />
                         <span className="text-xs">PDF</span>
                       </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => downloadPath("docx")} 
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => downloadPath("docx")}
                         className="text-blue-400 hover:text-blue-300"
                         title="Download Word"
                         data-testid="lp-download-docx"
@@ -940,7 +938,7 @@ export default function LearningPathPage() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   {/* Progress Stats */}
                   {generatedPath.id && (
                     <div className="grid grid-cols-3 gap-4 mb-4">
@@ -958,32 +956,32 @@ export default function LearningPathPage() {
                       </div>
                       <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
                         <div className="text-2xl font-bold text-indigo-400">
-                          {overallStats.totalCourses > 0 
-                            ? Math.round((overallStats.completedCourses / overallStats.totalCourses) * 100) 
+                          {overallStats.totalCourses > 0
+                            ? Math.round((overallStats.completedCourses / overallStats.totalCourses) * 100)
                             : 0}%
                         </div>
                         <div className="text-xs text-muted-foreground">Overall Progress</div>
                       </div>
                     </div>
                   )}
-                  
-                  <Progress 
-                    value={overallStats.totalCourses > 0 
-                      ? (overallStats.completedCourses / overallStats.totalCourses) * 100 
+
+                  <Progress
+                    value={overallStats.totalCourses > 0
+                      ? (overallStats.completedCourses / overallStats.totalCourses) * 100
                       : 0
-                    } 
-                    className="h-2" 
+                    }
+                    className="h-2"
                   />
                   <p className="text-xs text-muted-foreground mt-2 text-center">
-                    {generatedPath.id 
-                      ? "Click the circle next to each course to mark it complete" 
+                    {generatedPath.id
+                      ? "Click the circle next to each course to mark it complete"
                       : "Progress tracking available after path is saved"
                     }
                   </p>
                 </div>
 
                 {/* Fast Track Banner */}
-                <FastTrackBanner 
+                <FastTrackBanner
                   fastTrack={generatedPath.learning_path?.fast_track}
                   isCollapsed={fastTrackCollapsed}
                   onToggle={() => setFastTrackCollapsed(!fastTrackCollapsed)}
@@ -994,19 +992,18 @@ export default function LearningPathPage() {
                   {generatedPath.learning_path?.weeks?.map((week, index) => {
                     const isWeekCompleted = weekProgress[String(week.week)]?.completed;
                     const weekCourseCount = week.courses?.length || 0;
-                    const completedInWeek = week.courses?.filter((_, i) => 
+                    const completedInWeek = week.courses?.filter((_, i) =>
                       isCourseCompleted(week.week, i)
                     ).length || 0;
-                    
+
                     return (
                       <motion.div
                         key={week.week}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className={`glass rounded-xl overflow-hidden ${
-                          isWeekCompleted ? "ring-2 ring-emerald-500/50" : ""
-                        }`}
+                        className={`glass rounded-xl overflow-hidden ${isWeekCompleted ? "ring-2 ring-emerald-500/50" : ""
+                          }`}
                       >
                         <div
                           className="p-4 cursor-pointer flex items-center justify-between hover:bg-white/5"
@@ -1015,12 +1012,12 @@ export default function LearningPathPage() {
                           <div className="flex items-center gap-4">
                             <div className={`
                               w-12 h-12 rounded-xl flex items-center justify-center font-bold relative
-                              ${isWeekCompleted 
-                                ? "bg-emerald-500/30 text-emerald-300" 
+                              ${isWeekCompleted
+                                ? "bg-emerald-500/30 text-emerald-300"
                                 : week.phase === "Foundation" ? "bg-blue-500/20 text-blue-400" :
                                   week.phase === "Core" ? "bg-purple-500/20 text-purple-400" :
-                                  week.phase === "Advanced" ? "bg-orange-500/20 text-orange-400" :
-                                  "bg-emerald-500/20 text-emerald-400"}
+                                    week.phase === "Advanced" ? "bg-orange-500/20 text-orange-400" :
+                                      "bg-emerald-500/20 text-emerald-400"}
                             `}>
                               {isWeekCompleted ? (
                                 <CheckCircle2 className="w-6 h-6" />
@@ -1038,11 +1035,10 @@ export default function LearningPathPage() {
                                   <Clock className="w-3 h-3" /> {week.hours}h
                                 </span>
                                 {weekCourseCount > 0 && (
-                                  <span className={`px-2 py-0.5 rounded-full text-xs ${
-                                    completedInWeek === weekCourseCount 
-                                      ? "bg-emerald-500/20 text-emerald-300" 
+                                  <span className={`px-2 py-0.5 rounded-full text-xs ${completedInWeek === weekCourseCount
+                                      ? "bg-emerald-500/20 text-emerald-300"
                                       : "bg-white/10"
-                                  }`}>
+                                    }`}>
                                     {completedInWeek}/{weekCourseCount} courses
                                   </span>
                                 )}
@@ -1061,191 +1057,186 @@ export default function LearningPathPage() {
                           </div>
                         </div>
 
-                      {expandedWeeks.includes(week.week) && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="px-4 pb-4 space-y-4 border-t border-white/10"
-                        >
-                          {/* Courses */}
-                          {week.courses?.length > 0 && (
-                            <div className="pt-4">
-                              <div className="text-sm font-medium text-indigo-400 mb-3 flex items-center justify-between">
-                                <span className="flex items-center gap-2">
-                                  <BookOpen className="w-4 h-4" /> Recommended Courses
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {week.courses.filter((_, i) => isCourseCompleted(week.week, i)).length}/{week.courses.length} completed
-                                </span>
-                              </div>
-                              <div className="grid gap-3">
-                                {week.courses.map((course, i) => {
-                                  const isCompleted = isCourseCompleted(week.week, i);
-                                  const isSaved = isCourseSaved(course.url);
-                                  
-                                  return (
-                                    <div
-                                      key={i}
-                                      className={`p-4 rounded-xl border transition-all group ${
-                                        isCompleted 
-                                          ? "bg-emerald-500/10 border-emerald-500/30" 
-                                          : "bg-white/5 border-white/10 hover:border-indigo-500/30"
-                                      }`}
-                                    >
-                                      <div className="flex items-start gap-3">
-                                        {/* Completion checkbox */}
-                                        <button
-                                          onClick={() => toggleCourseComplete(week.week, i)}
-                                          className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-                                            isCompleted 
-                                              ? "bg-emerald-500 border-emerald-500 text-white" 
-                                              : "border-white/30 hover:border-emerald-400"
+                        {expandedWeeks.includes(week.week) && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="px-4 pb-4 space-y-4 border-t border-white/10"
+                          >
+                            {/* Courses */}
+                            {week.courses?.length > 0 && (
+                              <div className="pt-4">
+                                <div className="text-sm font-medium text-indigo-400 mb-3 flex items-center justify-between">
+                                  <span className="flex items-center gap-2">
+                                    <BookOpen className="w-4 h-4" /> Recommended Courses
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {week.courses.filter((_, i) => isCourseCompleted(week.week, i)).length}/{week.courses.length} completed
+                                  </span>
+                                </div>
+                                <div className="grid gap-3">
+                                  {week.courses.map((course, i) => {
+                                    const isCompleted = isCourseCompleted(week.week, i);
+                                    const isSaved = isCourseSaved(course.url);
+
+                                    return (
+                                      <div
+                                        key={i}
+                                        className={`p-4 rounded-xl border transition-all group ${isCompleted
+                                            ? "bg-emerald-500/10 border-emerald-500/30"
+                                            : "bg-white/5 border-white/10 hover:border-indigo-500/30"
                                           }`}
-                                          data-testid={`course-complete-${week.week}-${i}`}
-                                        >
-                                          {isCompleted && <Check className="w-4 h-4" />}
-                                        </button>
-                                        
-                                        <div className="flex-1 min-w-0">
-                                          <div className={`font-semibold transition-colors ${
-                                            isCompleted 
-                                              ? "text-emerald-300 line-through opacity-80" 
-                                              : "text-white group-hover:text-indigo-300"
-                                          }`}>
-                                            {course.name}
-                                          </div>
-                                          <div className="flex items-center flex-wrap gap-2 mt-2 text-xs">
-                                            <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
-                                              {course.platform}
-                                            </span>
-                                            <span className="flex items-center gap-1 text-muted-foreground">
-                                              <Clock className="w-3 h-3" />
-                                              {course.duration_hours ? `${course.duration_hours}h` : course.duration}
-                                            </span>
-                                            <span className={`px-2 py-0.5 rounded-full ${
-                                              course.cost_type === "free" 
-                                                ? "bg-emerald-500/20 text-emerald-300" 
-                                                : course.cost_type === "freemium"
-                                                  ? "bg-blue-500/20 text-blue-300"
-                                                  : "bg-amber-500/20 text-amber-300"
-                                            }`}>
-                                              {course.cost_type === "free" ? "🆓 Free" : 
-                                               course.cost_type === "freemium" ? "Free to audit" :
-                                               course.cost || "Paid"}
-                                            </span>
-                                            {course.badge && (
-                                              <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
-                                                {course.badge}
-                                              </span>
-                                            )}
-                                            {course.is_optional && (
-                                              <span className="px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-300">
-                                                Optional (Paid)
-                                              </span>
-                                            )}
-                                            {isCompleted && (
-                                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
-                                                ✓ Completed
-                                              </span>
-                                            )}
-                                          </div>
-                                          {course.why_recommended && (
-                                            <p className="mt-2 text-xs text-muted-foreground italic">
-                                              💡 {course.why_recommended}
-                                            </p>
-                                          )}
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                          {/* Save course button */}
+                                      >
+                                        <div className="flex items-start gap-3">
+                                          {/* Completion checkbox */}
                                           <button
-                                            onClick={() => saveCourse(course, week.week)}
-                                            disabled={savingCourse === course.url || isSaved}
-                                            className={`p-2 rounded-lg transition-colors ${
-                                              isSaved 
-                                                ? "bg-pink-500/20 text-pink-400" 
-                                                : "bg-white/5 text-muted-foreground hover:bg-pink-500/20 hover:text-pink-400"
-                                            }`}
-                                            title={isSaved ? "Saved" : "Save to profile"}
-                                            data-testid={`course-save-${week.week}-${i}`}
+                                            onClick={() => toggleCourseComplete(week.week, i)}
+                                            className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${isCompleted
+                                                ? "bg-emerald-500 border-emerald-500 text-white"
+                                                : "border-white/30 hover:border-emerald-400"
+                                              }`}
+                                            data-testid={`course-complete-${week.week}-${i}`}
                                           >
-                                            {savingCourse === course.url ? (
-                                              <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : isSaved ? (
-                                              <Bookmark className="w-4 h-4 fill-current" />
-                                            ) : (
-                                              <BookmarkPlus className="w-4 h-4" />
-                                            )}
+                                            {isCompleted && <Check className="w-4 h-4" />}
                                           </button>
-                                          
-                                          {/* Take course link */}
-                                          <a
-                                            href={course.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={() => trackCourseClick(course)}
-                                            className="px-3 py-2 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition-colors flex items-center gap-1 text-sm font-medium whitespace-nowrap"
-                                            data-testid={`course-link-${week.week}-${i}`}
-                                          >
-                                            Take Course
-                                            <ExternalLink className="w-3 h-3" />
-                                          </a>
+
+                                          <div className="flex-1 min-w-0">
+                                            <div className={`font-semibold transition-colors ${isCompleted
+                                                ? "text-emerald-300 line-through opacity-80"
+                                                : "text-white group-hover:text-indigo-300"
+                                              }`}>
+                                              {course.name}
+                                            </div>
+                                            <div className="flex items-center flex-wrap gap-2 mt-2 text-xs">
+                                              <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
+                                                {course.platform}
+                                              </span>
+                                              <span className="flex items-center gap-1 text-muted-foreground">
+                                                <Clock className="w-3 h-3" />
+                                                {course.duration_hours ? `${course.duration_hours}h` : course.duration}
+                                              </span>
+                                              <span className={`px-2 py-0.5 rounded-full ${course.cost_type === "free"
+                                                  ? "bg-emerald-500/20 text-emerald-300"
+                                                  : course.cost_type === "freemium"
+                                                    ? "bg-blue-500/20 text-blue-300"
+                                                    : "bg-amber-500/20 text-amber-300"
+                                                }`}>
+                                                {course.cost_type === "free" ? "🆓 Free" :
+                                                  course.cost_type === "freemium" ? "Free to audit" :
+                                                    course.cost || "Paid"}
+                                              </span>
+                                              {course.badge && (
+                                                <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+                                                  {course.badge}
+                                                </span>
+                                              )}
+                                              {course.is_optional && (
+                                                <span className="px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-300">
+                                                  Optional (Paid)
+                                                </span>
+                                              )}
+                                              {isCompleted && (
+                                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                                                  ✓ Completed
+                                                </span>
+                                              )}
+                                            </div>
+                                            {course.why_recommended && (
+                                              <p className="mt-2 text-xs text-muted-foreground italic">
+                                                💡 {course.why_recommended}
+                                              </p>
+                                            )}
+                                          </div>
+
+                                          <div className="flex items-center gap-2 flex-shrink-0">
+                                            {/* Save course button */}
+                                            <button
+                                              onClick={() => saveCourse(course, week.week)}
+                                              disabled={savingCourse === course.url || isSaved}
+                                              className={`p-2 rounded-lg transition-colors ${isSaved
+                                                  ? "bg-pink-500/20 text-pink-400"
+                                                  : "bg-white/5 text-muted-foreground hover:bg-pink-500/20 hover:text-pink-400"
+                                                }`}
+                                              title={isSaved ? "Saved" : "Save to profile"}
+                                              data-testid={`course-save-${week.week}-${i}`}
+                                            >
+                                              {savingCourse === course.url ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                              ) : isSaved ? (
+                                                <Bookmark className="w-4 h-4 fill-current" />
+                                              ) : (
+                                                <BookmarkPlus className="w-4 h-4" />
+                                              )}
+                                            </button>
+
+                                            {/* Take course link */}
+                                            <a
+                                              href={course.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              onClick={() => trackCourseClick(course)}
+                                              className="px-3 py-2 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition-colors flex items-center gap-1 text-sm font-medium whitespace-nowrap"
+                                              data-testid={`course-link-${week.week}-${i}`}
+                                            >
+                                              Take Course
+                                              <ExternalLink className="w-3 h-3" />
+                                            </a>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  })}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          {/* Milestones */}
-                          {week.milestones?.length > 0 && (
-                            <div>
-                              <div className="text-sm font-medium text-emerald-400 mb-2 flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4" /> Milestones
+                            {/* Milestones */}
+                            {week.milestones?.length > 0 && (
+                              <div>
+                                <div className="text-sm font-medium text-emerald-400 mb-2 flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4" /> Milestones
+                                </div>
+                                <ul className="space-y-1">
+                                  {week.milestones.map((m, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm">
+                                      <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                                      {m}
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
-                              <ul className="space-y-1">
-                                {week.milestones.map((m, i) => (
-                                  <li key={i} className="flex items-start gap-2 text-sm">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                                    {m}
-                                  </li>
+                            )}
+
+                            {/* Projects */}
+                            {week.projects?.length > 0 && (
+                              <div>
+                                <div className="text-sm font-medium text-amber-400 mb-2 flex items-center gap-2">
+                                  <Award className="w-4 h-4" /> Projects
+                                </div>
+                                <ul className="space-y-1">
+                                  {week.projects.map((p, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm">
+                                      <span className="text-amber-400">•</span>
+                                      {p}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Skills */}
+                            {week.skills_developed?.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {week.skills_developed.map((skill, i) => (
+                                  <span key={i} className="px-2 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs">
+                                    {skill}
+                                  </span>
                                 ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Projects */}
-                          {week.projects?.length > 0 && (
-                            <div>
-                              <div className="text-sm font-medium text-amber-400 mb-2 flex items-center gap-2">
-                                <Award className="w-4 h-4" /> Projects
                               </div>
-                              <ul className="space-y-1">
-                                {week.projects.map((p, i) => (
-                                  <li key={i} className="flex items-start gap-2 text-sm">
-                                    <span className="text-amber-400">•</span>
-                                    {p}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Skills */}
-                          {week.skills_developed?.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                              {week.skills_developed.map((skill, i) => (
-                                <span key={i} className="px-2 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs">
-                                  {skill}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </motion.div>
-                      )}
-                    </motion.div>
+                            )}
+                          </motion.div>
+                        )}
+                      </motion.div>
                     );
                   })}
                 </div>
